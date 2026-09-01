@@ -1,0 +1,38 @@
+# ---------------------------------------------------------------------------
+# Hyperledger Fabric Crypto-Config for ThreatTrust Consortium Network
+# ---------------------------------------------------------------------------
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: threattrust.local
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  # Organization 1: BankA
+  - Name: BankA
+    Domain: banka.threattrust.local
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 2
+
+  # Organization 2: BankB
+  - Name: BankB
+    Domain: bankb.threattrust.local
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 2
+
+  # Organization 3: CERTC
+  - Name: CERTC
+    Domain: certc.threattrust.local
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 2

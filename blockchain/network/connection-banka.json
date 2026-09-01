@@ -1,0 +1,50 @@
+{
+  "name": "threattrust-network-banka",
+  "version": "1.0.0",
+  "client": {
+    "organization": "BankA",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        },
+        "orderer": "300"
+      }
+    }
+  },
+  "organizations": {
+    "BankA": {
+      "mspid": "BankAMSP",
+      "peers": [
+        "peer0.banka.threattrust.local"
+      ],
+      "certificateAuthorities": [
+        "ca.banka.threattrust.local"
+      ]
+    }
+  },
+  "peers": {
+    "peer0.banka.threattrust.local": {
+      "url": "grpcs://localhost:7051",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICVjCCAf2gAwIBAgIQ...BankA_CA_Cert...\n-----END CERTIFICATE-----\n"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.banka.threattrust.local",
+        "hostnameOverride": "peer0.banka.threattrust.local"
+      }
+    }
+  },
+  "certificateAuthorities": {
+    "ca.banka.threattrust.local": {
+      "url": "https://localhost:7054",
+      "caName": "ca-banka",
+      "tlsCACerts": {
+        "pem": ["-----BEGIN CERTIFICATE-----\nMIICVjCCAf2gAwIBAgIQ...BankA_CA_Cert...\n-----END CERTIFICATE-----\n"]
+      },
+      "httpOptions": {
+        "verify": false
+      }
+    }
+  }
+}

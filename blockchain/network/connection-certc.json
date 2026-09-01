@@ -1,0 +1,50 @@
+{
+  "name": "threattrust-network-certc",
+  "version": "1.0.0",
+  "client": {
+    "organization": "CERTC",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        },
+        "orderer": "300"
+      }
+    }
+  },
+  "organizations": {
+    "CERTC": {
+      "mspid": "CERTCMSP",
+      "peers": [
+        "peer0.certc.threattrust.local"
+      ],
+      "certificateAuthorities": [
+        "ca.certc.threattrust.local"
+      ]
+    }
+  },
+  "peers": {
+    "peer0.certc.threattrust.local": {
+      "url": "grpcs://localhost:9051",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICVjCCAf2gAwIBAgIQ...CERTC_CA_Cert...\n-----END CERTIFICATE-----\n"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.certc.threattrust.local",
+        "hostnameOverride": "peer0.certc.threattrust.local"
+      }
+    }
+  },
+  "certificateAuthorities": {
+    "ca.certc.threattrust.local": {
+      "url": "https://localhost:9054",
+      "caName": "ca-certc",
+      "tlsCACerts": {
+        "pem": ["-----BEGIN CERTIFICATE-----\nMIICVjCCAf2gAwIBAgIQ...CERTC_CA_Cert...\n-----END CERTIFICATE-----\n"]
+      },
+      "httpOptions": {
+        "verify": false
+      }
+    }
+  }
+}

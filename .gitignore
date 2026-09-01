@@ -1,0 +1,59 @@
+﻿# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Environment and Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+!*.env.example
+!apps/backend/.env.example
+!apps/frontend/.env.example
+
+# Fabric Private Keys and Keystores
+**/keystore/*
+**/*_sk
+**/*.priv
+**/*.key
+**/wallet/*
+!**/wallet/.gitkeep
+
+# Production Blockchain Ledger & Runtime Data
+blockchain/production-ledger/
+**/production-ledger/**
+
+# Build outputs
+.next/
+dist/
+build/
+out/
+.turbo/
+*.tsbuildinfo
+
+# Database & runtime caches
+*.sqlite
+*.sqlite-journal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary / Scratch files
+scratch/
+pdf_content.txt

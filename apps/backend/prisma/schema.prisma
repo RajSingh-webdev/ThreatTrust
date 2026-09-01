@@ -1,0 +1,233 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum OrgType {
+  bank
+  cert
+  enterprise_soc
+}
+
+enum OrgStatus {
+  pending
+  active
+  suspended
+}
+
+enum UserRole {
+  admin
+  contributor
+  reviewer
+}
+
+enum UserStatus {
+  active
+  suspended
+}
+
+enum IocType {
+  ip
+  url
+  domain
+  file_hash
+}
+
+enum IocStatus {
+  pending
+  verified
+  rejected
+  flagged
+}
+
+enum TlpLevel {
+  white
+  green
+  amber
+  red
+}
+
+enum EndorsementDecision {
+  endorse
+  reject
+  flag
+}
+
+enum ReputationEventType {
+  valid_submission
+  false_submission
+  endorsement_given
+  penalty
+}
+
+enum AuditAction {
+  submit_ioc
+  endorse_ioc
+  reject_ioc
+  verify_ioc
+  flag_ioc
+  register_org
+  integrity_check
+  update_reputation
+}
+
+// ---------------------------------------------------------------------------
+// Organization
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id               String      @id @default(uuid())
+  name             String      @unique @db.VarChar(100)
+  orgType          OrgType     @map("org_type")
+  status           OrgStatus   @default(active)
+  fabricMspId      String?     @map("fabric_msp_id") @db.VarChar(100)
+  reputationScore  Int         @default(50) @map("reputation_score")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  users             User[]
+  submittedIocs     Ioc[]            @relation("ContributorOrg")
+  endorsements      Endorsement[]
+  reputationEvents  ReputationEvent[]
+  auditActorEvents  AuditLog[]       @relation("AuditActor")
+
+  @@map("organizations")
+}
+
+// ---------------------------------------------------------------------------
+// User
+// ---------------------------------------------------------------------------
+
+model User {
+  id             String     @id @default(uuid())
+  organizationId String     @map("organization_id")
+  username       String     @unique @db.VarChar(100)
+  passwordHash   String     @map("password_hash") @db.VarChar(255)
+  role           UserRole
+  status         UserStatus @default(active)
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  auditEvents  AuditLog[]   @relation("AuditUser")
+
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// IoC (Threat Record)
+// ---------------------------------------------------------------------------
+
+model Ioc {
+  id                  String    @id @default(uuid())
+  iocType             IocType   @map("ioc_type")
+  rawValue            String    @map("raw_value")
+  normalizedValue     String    @map("normalized_value")
+  contributorOrgId    String    @map("contributor_org_id")
+  status              IocStatus @default(pending)
+
+  // Trust / confidence
+  confidenceScore     Int       @default(0) @map("confidence_score")
+  reputationAtSubmit  Int       @map("reputation_at_submit")
+
+  // Integrity & blockchain anchoring
+  integrityHash       String?   @map("integrity_hash") @db.VarChar(64)
+  blockchainTxId      String?   @map("blockchain_tx_id") @db.VarChar(255)
+
+  // Metadata
+  tlpLevel            TlpLevel  @default(amber) @map("tlp_level")
+  description         String?
+  evidenceReference   String?   @map("evidence_reference")
+
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  contributorOrg    Organization  @relation("ContributorOrg", fields: [contributorOrgId], references: [id])
+  endorsements      Endorsement[]
+  reputationEvents  ReputationEvent[]
+  auditEvents       AuditLog[]
+
+  // Duplicate detection: (iocType, normalizedValue) must be unique
+  @@unique([iocType, normalizedValue], name: "unique_ioc_type_value")
+  @@map("iocs")
+}
+
+// ---------------------------------------------------------------------------
+// Endorsement
+// ---------------------------------------------------------------------------
+
+model Endorsement {
+  id              String              @id @default(uuid())
+  iocId           String              @map("ioc_id")
+  organizationId  String              @map("organization_id")
+  decision        EndorsementDecision
+  reason          String?
+  blockchainTxId  String?             @map("blockchain_tx_id") @db.VarChar(255)
+  createdAt       DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  ioc          Ioc          @relation(fields: [iocId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  // One org can only endorse a given IoC once
+  @@unique([iocId, organizationId], name: "unique_endorsement_per_org")
+  @@map("endorsements")
+}
+
+// ---------------------------------------------------------------------------
+// Reputation Event
+// ---------------------------------------------------------------------------
+
+model ReputationEvent {
+  id              String              @id @default(uuid())
+  organizationId  String              @map("organization_id")
+  eventType       ReputationEventType @map("event_type")
+  scoreDelta      Int                 @map("score_delta")
+  relatedIocId    String?             @map("related_ioc_id")
+  previousScore   Int                 @map("previous_score")
+  newScore        Int                 @map("new_score")
+  blockchainTxId  String?             @map("blockchain_tx_id") @db.VarChar(255)
+  createdAt       DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id])
+  relatedIoc   Ioc?         @relation(fields: [relatedIocId], references: [id])
+
+  @@map("reputation_events")
+}
+
+// ---------------------------------------------------------------------------
+// Audit Log
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id              String      @id @default(uuid())
+  actorOrgId      String      @map("actor_org_id")
+  actorUserId     String?     @map("actor_user_id")
+  action          AuditAction
+  objectId        String?     @map("object_id")
+  blockchainTxId  String?     @map("blockchain_tx_id") @db.VarChar(255)
+  result          String?
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  actorOrg  Organization @relation("AuditActor", fields: [actorOrgId], references: [id])
+  actorUser User?        @relation("AuditUser", fields: [actorUserId], references: [id])
+  ioc       Ioc?         @relation(fields: [objectId], references: [id])
+
+  @@map("audit_log")
+}

@@ -1,0 +1,13 @@
+{
+  "name": "threattrust",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:backend": "npm run dev --prefix apps/backend",
+    "dev:frontend": "npm run dev --prefix apps/frontend",
+    "db:migrate": "npm run db:migrate --prefix apps/backend",
+    "db:seed": "npm run db:seed --prefix apps/backend",
+    "db:studio": "npm run db:studio --prefix apps/backend",
+    "install:all": "npm install --prefix apps/backend && npm install --prefix apps/frontend"
+  }
+}

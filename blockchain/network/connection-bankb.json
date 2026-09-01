@@ -1,0 +1,50 @@
+{
+  "name": "threattrust-network-bankb",
+  "version": "1.0.0",
+  "client": {
+    "organization": "BankB",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        },
+        "orderer": "300"
+      }
+    }
+  },
+  "organizations": {
+    "BankB": {
+      "mspid": "BankBMSP",
+      "peers": [
+        "peer0.bankb.threattrust.local"
+      ],
+      "certificateAuthorities": [
+        "ca.bankb.threattrust.local"
+      ]
+    }
+  },
+  "peers": {
+    "peer0.bankb.threattrust.local": {
+      "url": "grpcs://localhost:8051",
+      "tlsCACerts": {
+        "pem": "-----BEGIN CERTIFICATE-----\nMIICVjCCAf2gAwIBAgIQ...BankB_CA_Cert...\n-----END CERTIFICATE-----\n"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.bankb.threattrust.local",
+        "hostnameOverride": "peer0.bankb.threattrust.local"
+      }
+    }
+  },
+  "certificateAuthorities": {
+    "ca.bankb.threattrust.local": {
+      "url": "https://localhost:8054",
+      "caName": "ca-bankb",
+      "tlsCACerts": {
+        "pem": ["-----BEGIN CERTIFICATE-----\nMIICVjCCAf2gAwIBAgIQ...BankB_CA_Cert...\n-----END CERTIFICATE-----\n"]
+      },
+      "httpOptions": {
+        "verify": false
+      }
+    }
+  }
+}
