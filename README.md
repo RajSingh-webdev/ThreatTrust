@@ -134,14 +134,17 @@ ThreatTrust/
 
 ## Consortium Organizations & Test Accounts
 
-| Organization | Org Type | MSP ID | Username | Role | Password |
-|---|---|---|---|---|---|
-| **BankA** | Commercial Bank | `BankAMSP` | `banka_admin` | `admin` | `banka_admin_pass` |
-| **BankA** | Commercial Bank | `BankAMSP` | `banka_analyst` | `contributor` | `banka_analyst_pass` |
-| **BankB** | Commercial Bank | `BankBMSP` | `bankb_analyst` | `contributor` | `bankb_analyst_pass` |
-| **BankB** | Commercial Bank | `BankBMSP` | `bankb_reviewer` | `reviewer` | `bankb_reviewer_pass` |
-| **CERTC** | National CERT | `CERTCMSP` | `certc_analyst` | `contributor` | `certc_analyst_pass` |
-| **CERTC** | National CERT | `CERTCMSP` | `certc_reviewer` | `reviewer` | `certc_reviewer_pass` |
+| Organization | Org Type | MSP ID | Username | Role |
+|---|---|---|---|---|
+| **BankA** | Commercial Bank | `BankAMSP` | `banka_admin` | `admin` |
+| **BankA** | Commercial Bank | `BankAMSP` | `banka_analyst` | `contributor` |
+| **BankB** | Commercial Bank | `BankBMSP` | `bankb_analyst` | `contributor` |
+| **BankB** | Commercial Bank | `BankBMSP` | `bankb_reviewer` | `reviewer` |
+| **CERTC** | National CERT | `CERTCMSP` | `certc_analyst` | `contributor` |
+| **CERTC** | National CERT | `CERTCMSP` | `certc_reviewer` | `reviewer` |
+
+> [!NOTE]
+> Demo credentials are intentionally not published in this repository. Use the local development configuration or the project team’s demo environment for authentication details.
 
 ---
 
