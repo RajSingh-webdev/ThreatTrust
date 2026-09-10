@@ -123,20 +123,20 @@ export function shortTxId(txId: string): string {
 
 /** Reputation colour based on score */
 export function reputationColor(score: number): string {
-  if (score >= 70) return 'text-emerald-400';
-  if (score >= 50) return 'text-blue-400';
-  if (score >= 30) return 'text-amber-400';
-  return 'text-red-400';
+  if (score >= 70) return 'text-emerald-700';
+  if (score >= 50) return 'text-blue-700';
+  if (score >= 30) return 'text-amber-700';
+  return 'text-red-700';
 }
 
 /** TLP colour */
 export function tlpColor(tlp: string): string {
   switch (tlp) {
-    case 'white': return 'text-white bg-white/10';
-    case 'green': return 'text-emerald-400 bg-emerald-400/10';
-    case 'amber': return 'text-amber-400 bg-amber-400/10';
-    case 'red':   return 'text-red-400 bg-red-400/10';
-    default:      return 'text-gray-400 bg-gray-400/10';
+    case 'white': return 'text-slate-800 bg-slate-100 border-slate-300';
+    case 'green': return 'text-emerald-800 bg-emerald-50 border-emerald-300';
+    case 'amber': return 'text-amber-800 bg-amber-50 border-amber-300';
+    case 'red':   return 'text-red-800 bg-red-50 border-red-300';
+    default:      return 'text-slate-700 bg-slate-100 border-slate-200';
   }
 }
 
@@ -150,8 +150,8 @@ export const IOC_TYPE_LABELS: Record<string, string> = {
 
 /** Status display config */
 export const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
-  pending:  { label: 'Pending',  classes: 'text-amber-400 bg-amber-400/10 border-amber-400/30' },
-  verified: { label: 'Verified', classes: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30' },
-  rejected: { label: 'Rejected', classes: 'text-red-400 bg-red-400/10 border-red-400/30' },
-  flagged:  { label: 'Flagged',  classes: 'text-orange-400 bg-orange-400/10 border-orange-400/30' },
+  pending:  { label: 'Pending',  classes: 'text-amber-800 bg-amber-50 border-amber-300' },
+  verified: { label: 'Verified', classes: 'text-emerald-800 bg-emerald-50 border-emerald-300' },
+  rejected: { label: 'Rejected', classes: 'text-red-800 bg-red-50 border-red-300' },
+  flagged:  { label: 'Flagged',  classes: 'text-orange-800 bg-orange-50 border-orange-300' },
 };

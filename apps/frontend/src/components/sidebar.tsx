@@ -61,41 +61,39 @@ export default function Sidebar() {
   const displayScore = currentOrgInList?.reputationScore ?? org.reputationScore;
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-64 bg-gray-900 border-r border-gray-800 flex flex-col z-40">
+    <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 flex flex-col z-40">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 py-5 border-b border-gray-800">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-          <Shield className="w-5 h-5 text-white" />
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-200">
+        <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center flex-shrink-0">
+          <Shield className="w-4 h-4 text-white" />
         </div>
         <div>
-          <span className="text-white font-bold text-lg leading-none">ThreatTrust</span>
-          <p className="text-gray-500 text-[10px] mt-0.5 uppercase tracking-widest">Decentralized CTI</p>
+          <span className="text-slate-900 font-bold text-base leading-none">ThreatTrust</span>
+          <p className="text-slate-500 text-[10px] mt-0.5 uppercase tracking-wider font-semibold">Decentralized CTI</p>
         </div>
       </div>
 
       {/* Current Org Badge */}
-      <div className="px-4 py-3 border-b border-gray-800">
-        <div className="bg-gray-800 rounded-lg p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Building2 className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-            <span className="text-xs text-gray-400 uppercase tracking-wider">Active Organization</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white font-semibold text-sm">{org.name}</p>
-              <p className="text-gray-500 text-xs">{ORG_TYPE_LABELS[org.orgType] ?? org.orgType}</p>
+      <div className="px-4 py-3 border-b border-slate-200 bg-slate-50/60">
+        <div className="bg-white border border-slate-200 rounded-md p-3">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Active Org</span>
             </div>
-            <div className="text-right">
-              <p className={`font-bold text-base leading-none ${reputationColor(displayScore)}`}>
-                {displayScore}
-              </p>
-              <p className="text-gray-600 text-[10px] mt-0.5">reputation</p>
-            </div>
+            <span className={`text-xs font-bold ${reputationColor(displayScore)}`}>
+              {displayScore} <span className="text-[10px] font-normal text-slate-500">rep</span>
+            </span>
           </div>
-          <div className="mt-2 flex items-center gap-1.5">
-            <span className="text-xs text-gray-300 font-medium">{user.username}</span>
-            <span className="text-gray-600">·</span>
-            <span className="text-xs text-blue-400 capitalize font-medium">{user.role}</span>
+          <div>
+            <p className="text-slate-900 font-semibold text-sm">{org.name}</p>
+            <p className="text-slate-500 text-xs">{ORG_TYPE_LABELS[org.orgType] ?? org.orgType}</p>
+          </div>
+          <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-slate-700 font-medium">{user.username}</span>
+            <span className="text-[10px] uppercase font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+              {user.role}
+            </span>
           </div>
         </div>
 
@@ -104,22 +102,22 @@ export default function Sidebar() {
           <button
             type="button"
             onClick={() => setSwitchOpen(!switchOpen)}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-md transition-colors"
+            className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded border border-slate-200 bg-white transition-colors"
           >
             <span>Switch org / role</span>
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${switchOpen ? 'rotate-180' : ''}`} />
           </button>
           {switchOpen && (
-            <div className="mt-2 bg-gray-950/70 border border-gray-800 rounded-xl overflow-hidden divide-y divide-gray-850 max-h-52 overflow-y-auto">
+            <div className="mt-2 bg-white border border-slate-200 rounded-md overflow-hidden divide-y divide-slate-100 max-h-52 overflow-y-auto shadow-sm">
               {currentOrgsList.map((o) => {
                 const canonicalOrgKey = o.id.startsWith('org-') ? o.id : `org-${o.name.toLowerCase()}`;
                 const orgUsers = Object.values(USERS).filter((u) => u.organizationId === canonicalOrgKey);
                 const isCurrentOrg = o.id === org.id || o.name === org.name;
 
                 return (
-                  <div key={o.id} className="p-2 space-y-1">
+                  <div key={o.id} className="p-2 space-y-1 bg-white">
                     <div className="flex items-center justify-between px-1">
-                      <span className="text-xs font-bold text-white">{o.name}</span>
+                      <span className="text-xs font-semibold text-slate-900">{o.name}</span>
                       <span className={`text-[11px] font-bold ${reputationColor(o.reputationScore)}`}>
                         {o.reputationScore} rep
                       </span>
@@ -132,14 +130,14 @@ export default function Sidebar() {
                             key={u.id}
                             type="button"
                             onClick={() => handleSwitchAccount(canonicalOrgKey, u.id)}
-                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors ${
                               isCurrent
-                                ? 'bg-blue-600/25 text-blue-300 font-semibold border border-blue-500/40'
-                                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
+                                : 'text-slate-700 hover:bg-slate-100'
                             }`}
                           >
                             <span>{u.username}</span>
-                            <span className="text-[10px] uppercase font-bold text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded border border-gray-700/60">
+                            <span className="text-[10px] uppercase font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
                               {u.role}
                             </span>
                           </button>
@@ -156,21 +154,21 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 min-h-0 px-3 py-3 overflow-y-auto">
-        <p className="px-2 mb-2 text-[10px] text-gray-600 uppercase tracking-widest">Navigation</p>
-        <ul className="space-y-0.5">
+        <p className="px-3 mb-2 text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Navigation</p>
+        <ul className="space-y-1">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
             return (
               <li key={href}>
                 <Link
                   href={href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                  className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
                     ${active
-                      ? 'bg-blue-600/15 text-blue-300 border border-blue-600/25'
-                      : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+                      ? 'bg-blue-50 text-blue-700 font-semibold border-l-2 border-blue-600'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                     }`}
                 >
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-blue-400' : ''}`} />
+                  <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
                   {label}
                 </Link>
               </li>
@@ -180,19 +178,19 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-4 border-t border-gray-800 space-y-1">
-        <div className="px-3 py-2 rounded-lg bg-gray-800/50">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-            <span className="text-xs text-gray-300 font-medium">Hyperledger Fabric 2.5</span>
+      <div className="px-3 py-3 border-t border-slate-200 bg-slate-50/60 space-y-1">
+        <div className="px-3 py-2 rounded-md bg-white border border-slate-200">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+            <span className="text-xs text-slate-700 font-medium">Hyperledger Fabric 2.5</span>
           </div>
-          <p className="text-[10px] text-gray-500">Consortium Channel: cti-channel</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">Consortium Channel: cti-channel</p>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400 hover:text-red-400 hover:bg-red-400/5 rounded-lg transition-colors"
+          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-4 h-4 text-slate-400" />
           Sign out
         </button>
       </div>

@@ -103,64 +103,64 @@ export default function ThreatFeedPage() {
   const hasActiveFilters = searchTerm !== '' || selectedStatus !== 'all' || selectedType !== 'all' || selectedOrg !== 'all';
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-6 max-w-7xl mx-auto space-y-5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Threat Feed</h1>
-            <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Threat Feed</h1>
+            <span className="bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold px-2 py-0.5 rounded">
               {filteredIocs.length} of {baseList.length} Indicators
             </span>
           </div>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="text-slate-500 text-xs mt-1">
             Global immutable threat intelligence sharing stream across consortium members
           </p>
         </div>
         <Link
           href="/submit"
-          className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/20 transition-colors"
+          className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3.5 py-2 rounded-md transition-colors shadow-xs"
         >
           Submit Indicator
         </Link>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
+      <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
         {/* Search Input */}
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by indicator value, IP, domain, hash, description, or ID..."
-            className="w-full bg-gray-800/80 border border-gray-700 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-white border border-slate-300 rounded-md pl-9 pr-9 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
         {/* Filter Controls Row */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-1 border-t border-gray-800/60">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* Status Filter */}
-            <div className="flex items-center gap-1.5 bg-gray-800/60 p-1 rounded-lg border border-gray-700/60 text-xs">
-              <span className="text-gray-500 px-2 font-medium">Status:</span>
+            <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-md border border-slate-200 text-xs">
+              <span className="text-slate-500 px-1.5 font-medium">Status:</span>
               {['all', 'verified', 'pending', 'rejected', 'flagged'].map((status) => (
                 <button
                   key={status}
                   onClick={() => setSelectedStatus(status)}
-                  className={`px-2.5 py-1 rounded-md capitalize font-medium transition-colors ${
+                  className={`px-2 py-0.5 rounded capitalize font-medium text-xs transition-colors ${
                     selectedStatus === status
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   }`}
                 >
                   {status}
@@ -169,8 +169,8 @@ export default function ThreatFeedPage() {
             </div>
 
             {/* IoC Type Filter */}
-            <div className="flex items-center gap-1.5 bg-gray-800/60 p-1 rounded-lg border border-gray-700/60 text-xs">
-              <span className="text-gray-500 px-2 font-medium">Type:</span>
+            <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-md border border-slate-200 text-xs">
+              <span className="text-slate-500 px-1.5 font-medium">Type:</span>
               {[
                 { key: 'all', label: 'All' },
                 { key: 'ip', label: 'IP' },
@@ -181,10 +181,10 @@ export default function ThreatFeedPage() {
                 <button
                   key={t.key}
                   onClick={() => setSelectedType(t.key)}
-                  className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                  className={`px-2 py-0.5 rounded font-medium text-xs transition-colors ${
                     selectedType === t.key
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                   }`}
                 >
                   {t.label}
@@ -196,7 +196,7 @@ export default function ThreatFeedPage() {
             <select
               value={selectedOrg}
               onChange={(e) => setSelectedOrg(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="all">All Organizations</option>
               {contributorOrgs.map((o) => (
@@ -211,7 +211,7 @@ export default function ThreatFeedPage() {
           {hasActiveFilters && (
             <button
               onClick={resetFilters}
-              className="text-xs text-gray-400 hover:text-white flex items-center gap-1 transition-colors ml-auto"
+              className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors ml-auto font-medium"
             >
               <RefreshCw className="w-3 h-3" />
               Reset Filters
@@ -221,38 +221,38 @@ export default function ThreatFeedPage() {
       </div>
 
       {/* Threats Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
         {filteredIocs.length === 0 ? (
-          <div className="text-center py-16 px-4">
-            <Radio className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-gray-300">No Indicators Match Filter</h3>
-            <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto">
+          <div className="text-center py-12 px-4">
+            <Radio className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+            <h3 className="text-sm font-semibold text-slate-800">No Indicators Match Filter</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
               Try adjusting your search query, status, type, or organization filters.
             </p>
             <button
               onClick={resetFilters}
-              className="mt-4 inline-flex items-center gap-2 text-xs font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20"
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1 rounded-md border border-blue-200"
             >
               <RefreshCw className="w-3 h-3" /> Reset All Filters
             </button>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-gray-800 bg-gray-850/50 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                  <th className="py-3.5 px-4 pl-6">Status</th>
-                  <th className="py-3.5 px-4">Type</th>
-                  <th className="py-3.5 px-4">Indicator Value</th>
-                  <th className="py-3.5 px-4">Contributor</th>
-                  <th className="py-3.5 px-4">TLP</th>
-                  <th className="py-3.5 px-4 text-center">Confidence</th>
-                  <th className="py-3.5 px-4 text-center">Endorsements</th>
-                  <th className="py-3.5 px-4">Observed</th>
-                  <th className="py-3.5 px-4 pr-6 text-right">Details</th>
+                <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <th className="py-2.5 px-4 pl-5">Status</th>
+                  <th className="py-2.5 px-4">Type</th>
+                  <th className="py-2.5 px-4">Indicator Value</th>
+                  <th className="py-2.5 px-4">Contributor</th>
+                  <th className="py-2.5 px-4">TLP</th>
+                  <th className="py-2.5 px-4 text-center">Confidence</th>
+                  <th className="py-2.5 px-4 text-center">Endorsements</th>
+                  <th className="py-2.5 px-4">Observed</th>
+                  <th className="py-2.5 px-4 pr-5 text-right">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800 text-sm">
+              <tbody className="divide-y divide-slate-100">
                 {filteredIocs.map((ioc: any) => {
                   const contributorName = ioc.contributorOrg?.name || ORGANIZATIONS[ioc.contributorOrgId]?.name || ioc.contributorOrgId;
                   const isMine = (ioc.contributorOrgId || ioc.contributorOrg?.id) === org?.id || ioc.contributorOrg?.name === org?.name;
@@ -266,8 +266,8 @@ export default function ThreatFeedPage() {
                     const filled = Math.min(2, ioc.confidenceScore || validEndorseCount);
                     return (
                       <div className="flex items-center justify-center gap-1" title={`${ioc.confidenceScore || validEndorseCount}/2 peer corroboration`}>
-                        <span className={`w-2 h-2 rounded-full ${filled >= 1 ? 'bg-emerald-400' : 'bg-gray-700'}`} />
-                        <span className={`w-2 h-2 rounded-full ${filled >= 2 ? 'bg-emerald-400' : 'bg-gray-700'}`} />
+                        <span className={`w-2 h-2 rounded-full ${filled >= 1 ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                        <span className={`w-2 h-2 rounded-full ${filled >= 2 ? 'bg-emerald-500' : 'bg-slate-200'}`} />
                       </div>
                     );
                   };
@@ -275,27 +275,27 @@ export default function ThreatFeedPage() {
                   return (
                     <tr
                       key={ioc.id}
-                      className="hover:bg-gray-850/60 transition-colors group cursor-pointer"
+                      className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                       onClick={() => {
                         window.location.href = `/threats/${ioc.id}`;
                       }}
                     >
                       {/* Status */}
-                      <td className="py-4 px-4 pl-6 whitespace-nowrap">
+                      <td className="py-3 px-4 pl-5 whitespace-nowrap">
                         <StatusBadge status={ioc.status} size="sm" />
                       </td>
 
                       {/* IoC Type Badge */}
-                      <td className="py-4 px-4 whitespace-nowrap">
+                      <td className="py-3 px-4 whitespace-nowrap">
                         <span
-                          className={`text-xs font-semibold px-2 py-0.5 rounded border uppercase ${
+                          className={`text-[11px] font-semibold px-2 py-0.5 rounded border uppercase ${
                             ioc.iocType === 'ip'
-                              ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
                               : ioc.iocType === 'url'
-                              ? 'bg-purple-500/10 text-purple-400 border-purple-500/30'
+                              ? 'bg-purple-50 text-purple-700 border-purple-200'
                               : ioc.iocType === 'domain'
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                              : 'bg-orange-500/10 text-orange-400 border-orange-500/30'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-orange-50 text-orange-700 border-orange-200'
                           }`}
                         >
                           {ioc.iocType === 'file_hash' ? 'Hash' : ioc.iocType}
@@ -303,50 +303,50 @@ export default function ThreatFeedPage() {
                       </td>
 
                       {/* Indicator Value (Masked) */}
-                      <td className="py-4 px-4 font-mono text-gray-200 group-hover:text-blue-400 transition-colors max-w-xs md:max-w-md truncate">
+                      <td className="py-3 px-4 font-mono text-slate-900 group-hover:text-blue-600 transition-colors max-w-xs md:max-w-md truncate">
                         {maskIocValue(ioc.normalizedValue, ioc.iocType)}
                       </td>
 
                       {/* Contributor Org */}
-                      <td className="py-4 px-4 whitespace-nowrap">
+                      <td className="py-3 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-white font-medium">{contributorName}</span>
+                          <span className="text-slate-800 font-medium">{contributorName}</span>
                           {isMine && (
-                            <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.2 rounded">You</span>
+                            <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.2 rounded border border-blue-200 font-semibold">You</span>
                           )}
                         </div>
                       </td>
 
                       {/* TLP Badge */}
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase border ${tlpColor(ioc.tlpLevel)}`}>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase border ${tlpColor(ioc.tlpLevel)}`}>
                           TLP:{ioc.tlpLevel}
                         </span>
                       </td>
 
                       {/* Confidence */}
-                      <td className="py-4 px-4 whitespace-nowrap text-center">
+                      <td className="py-3 px-4 whitespace-nowrap text-center">
                         {renderConfidence()}
                       </td>
 
                       {/* Endorsement Progress */}
-                      <td className="py-4 px-4 whitespace-nowrap text-center">
-                        <span className={`font-medium ${validEndorseCount >= 2 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      <td className="py-3 px-4 whitespace-nowrap text-center">
+                        <span className={`font-semibold ${validEndorseCount >= 2 ? 'text-emerald-700' : 'text-amber-700'}`}>
                           {validEndorseCount}/2
                         </span>
                       </td>
 
                       {/* Age */}
-                      <td className="py-4 px-4 whitespace-nowrap text-xs text-gray-500">
+                      <td className="py-3 px-4 whitespace-nowrap text-slate-500">
                         {timeAgo(ioc.createdAt)}
                       </td>
 
                       {/* Details Link */}
-                      <td className="py-4 px-4 pr-6 text-right whitespace-nowrap">
+                      <td className="py-3 px-4 pr-5 text-right whitespace-nowrap">
                         <Link
                           href={`/threats/${ioc.id}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-blue-400 font-medium group-hover:translate-x-0.5 transition-all"
+                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
                         >
                           View <ChevronRight className="w-3.5 h-3.5" />
                         </Link>

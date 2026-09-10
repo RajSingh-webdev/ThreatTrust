@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Shield, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { ORGS_LIST, USERS } from '@/lib/mock-data';
-
+import { reputationColor } from '@/lib/utils';
 import { api } from '@/lib/api';
 
 const ORG_TYPE_LABELS: Record<string, string> = {
@@ -83,56 +83,57 @@ export default function LoginPage() {
   const org = ORGS_LIST.find(o => o.id === selectedOrg);
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-600/25">
-            <Shield className="w-8 h-8 text-white" />
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-xl mb-3 shadow-xs">
+            <Shield className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white">
-            <span className="text-blue-400">Threat</span>Trust
+          <h1 className="text-2xl font-bold text-slate-900">
+            <span className="text-blue-600">Threat</span>Trust
           </h1>
-          <p className="text-gray-500 mt-1 text-sm">Decentralized Cyber Threat Intelligence</p>
+          <p className="text-slate-500 mt-1 text-xs">Decentralized Cyber Threat Intelligence</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-7 shadow-2xl">
-          <h2 className="text-lg font-semibold text-white mb-1">Sign in to ThreatTrust</h2>
-          <p className="text-gray-500 text-sm mb-6">Select your organization and authenticate</p>
+        <div className="bg-white border border-slate-200 rounded-xl p-7 shadow-xs">
+          <h2 className="text-base font-semibold text-slate-900 mb-1">Sign In</h2>
+          <p className="text-slate-500 text-xs mb-5">Select your organization and authenticate</p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Organization Selector */}
             <div>
-              <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                 Organization
               </label>
               <div className="grid gap-2">
                 {displayOrgs.map(o => {
                   const canonicalId = o.id.startsWith('org-') ? o.id : `org-${o.name.toLowerCase()}`;
+                  const isSelected = selectedOrg === canonicalId;
                   return (
                     <button
                       key={o.id}
                       type="button"
                       onClick={() => handleOrgChange(canonicalId)}
-                      className={`flex items-center justify-between p-3.5 rounded-xl border text-left transition-all
-                        ${selectedOrg === canonicalId
-                          ? 'border-blue-500 bg-blue-600/10 ring-1 ring-blue-500/50'
-                          : 'border-gray-700 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'
+                      className={`flex items-center justify-between p-3 rounded-lg border text-left transition-colors
+                        ${isSelected
+                          ? 'border-blue-600 bg-blue-50/60 ring-1 ring-blue-600'
+                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                         }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${selectedOrg === canonicalId ? 'bg-blue-400' : 'bg-gray-600'}`} />
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-blue-600' : 'bg-slate-300'}`} />
                         <div>
-                          <p className="text-sm font-medium text-white">{o.name}</p>
-                          <p className="text-xs text-gray-500">{ORG_TYPE_LABELS[o.orgType]} · MSP: {o.fabricMspId}</p>
+                          <p className="text-sm font-semibold text-slate-900">{o.name}</p>
+                          <p className="text-xs text-slate-500">{ORG_TYPE_LABELS[o.orgType]} · MSP: {o.fabricMspId}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`text-sm font-bold ${o.reputationScore >= 50 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        <p className={`text-sm font-bold ${reputationColor(o.reputationScore)}`}>
                           {o.reputationScore}
                         </p>
-                        <p className="text-[10px] text-gray-600">rep</p>
+                        <p className="text-[10px] text-slate-400">rep</p>
                       </div>
                     </button>
                   );
@@ -142,13 +143,13 @@ export default function LoginPage() {
 
             {/* User Selector */}
             <div>
-              <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
                 User Account
               </label>
               <select
                 value={selectedUser}
                 onChange={e => { setSelectedUser(e.target.value); setError(''); }}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {orgUsers.map(u => (
                   <option key={u.id} value={u.id}>
@@ -160,7 +161,7 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
                 Password
               </label>
               <input
@@ -169,12 +170,13 @@ export default function LoginPage() {
                 onChange={e => { setPassword(e.target.value); setError(''); }}
                 placeholder="Enter password"
                 autoComplete="current-password"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+                className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+              </input>
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2.5">
+              <div className="flex items-start gap-2 text-red-700 text-xs bg-red-50 border border-red-200 rounded-md p-2.5">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 {error}
               </div>
@@ -183,7 +185,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading || !password}
-              className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2 rounded-md transition-colors text-sm shadow-xs"
             >
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
@@ -191,21 +193,23 @@ export default function LoginPage() {
         </div>
 
         {/* Prototype Credentials */}
-        <div className="mt-4 bg-gray-900/50 border border-gray-800 rounded-xl p-4">
-          <p className="text-[11px] text-gray-600 uppercase tracking-wider font-medium mb-2">Prototype Credentials</p>
+        <div className="mt-4 bg-white border border-slate-200 rounded-lg p-3.5">
+          <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-2">Prototype Credentials</p>
           {org && (
             <div className="space-y-1">
               {orgUsers.map(u => (
-                <div key={u.id} className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400">{u.username}</span>
-                  <code className="text-xs text-gray-500 font-mono">{PASSWORDS[u.id]}</code>
+                <div key={u.id} className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600">{u.username}</span>
+                  <code className="text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[11px] font-mono border border-slate-200">
+                    {PASSWORDS[u.id]}
+                  </code>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <p className="text-center text-xs text-gray-600 mt-4">
+        <p className="text-center text-xs text-slate-400 mt-4">
           ThreatTrust Consortium · Hyperledger Fabric 2.5
         </p>
       </div>
