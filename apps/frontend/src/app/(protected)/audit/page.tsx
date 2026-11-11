@@ -55,10 +55,20 @@ export default function AuditIntegrityPage() {
     return all.filter((a) => a.action === selectedActionFilter);
   }, [liveAuditLogs, selectedActionFilter]);
 
-  // Demo Case 1: PASS (ioc-001)
-  const iocPass = IOCS['ioc-001'];
-  // Demo Case 2: FAIL (ioc-008 - tampered)
-  const iocFail = IOCS['ioc-008'];
+  // Fallback demo indicators for integrity visualization if none loaded yet
+  const iocPass = {
+    id: 'ioc-genesis',
+    iocType: 'ip',
+    normalizedValue: '198.51.100.1',
+    integrityHash: '93be512ca089698eb16675f96a46eb8eb7e4b623733c8da1f4ef77ea87a5bf00',
+  };
+  const iocFail = {
+    id: 'ioc-tampered-demo',
+    iocType: 'ip',
+    normalizedValue: '203.0.113.50',
+    integrityHash: '3da18efc8cb5dd1d456cbd0c3e8adc204c85be509c8f83b020fff8d81c5af18d',
+    tamperedCurrentHash: 'a7c9384910efbb21894dce30948576201948576102938475610293847561a0b1',
+  };
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
@@ -129,10 +139,8 @@ export default function AuditIntegrityPage() {
                 </p>
               </div>
               <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500 font-sans flex items-center justify-between">
-                <span>Input: <code className="font-mono text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">ioc-001|ip|45.83.64.1|org-banka|1706779200</code></span>
-                <Link href={`/threats/${iocPass.id}`} className="text-blue-600 hover:text-blue-800 font-medium hover:underline">
-                  View Record →
-                </Link>
+                <span>Formula: <code className="font-mono text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">SHA256(ioc_id|type|value|org|timestamp)</code></span>
+                <span className="text-emerald-700 font-medium">Valid Anchor</span>
               </div>
             </div>
           </div>
@@ -174,10 +182,8 @@ export default function AuditIntegrityPage() {
                 </p>
               </div>
               <div className="pt-2 border-t border-red-200/60 text-[11px] text-slate-500 font-sans flex items-center justify-between">
-                <span>Tampered Indicator: <strong className="text-red-700">91.121.87.46</strong></span>
-                <Link href={`/threats/${iocFail.id}`} className="text-red-700 hover:text-red-800 font-medium hover:underline">
-                  Inspect Incident →
-                </Link>
+                <span>Tampered Value: <strong className="text-red-700">203.0.113.50</strong></span>
+                <span className="text-red-700 font-medium">State Compromised</span>
               </div>
             </div>
           </div>
