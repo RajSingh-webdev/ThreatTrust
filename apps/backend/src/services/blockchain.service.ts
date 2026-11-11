@@ -45,9 +45,9 @@ export class BlockchainService {
    */
   public static resolveOrg(orgIdOrMsp = "org-banka"): { mspId: string; domain: string; port: number; ledgerOrgId: string } {
     const norm = (orgIdOrMsp || "").toLowerCase();
-    if (norm.includes("bankb") || norm === "org-bankb" || norm.includes("3aaef38a")) {
+    if (norm.includes("bankb") || norm === "org-bankb" || norm === "050029e9-700c-4b55-89ff-edd03c70ce37") {
       return { mspId: "BankBMSP", domain: "bankb.threattrust.local", port: 8051, ledgerOrgId: "org-bankb" };
-    } else if (norm.includes("certc") || norm.includes("cert") || norm === "org-certc" || norm.includes("c6aa9b49")) {
+    } else if (norm.includes("certc") || norm.includes("cert") || norm === "org-certc" || norm === "b2d7b9e7-9121-4bfe-9f5e-927a8d15a744") {
       return { mspId: "CERTCMSP", domain: "certc.threattrust.local", port: 9051, ledgerOrgId: "org-certc" };
     }
     return { mspId: "BankAMSP", domain: "banka.threattrust.local", port: 7051, ledgerOrgId: "org-banka" };

@@ -46,11 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const { orgId, userId, token } = JSON.parse(stored);
-        const org = ORGANIZATIONS[orgId];
-        const user = USERS[userId];
-        if (org && user) {
-          setState({ org, user, token, isAuthenticated: true });
-        }
+        const org = ORGANIZATIONS[orgId] || { id: orgId, name: orgId.replace('org-', '').toUpperCase(), reputationScore: 50 };
+        const user = USERS[userId] || { id: userId, organizationId: orgId, username: userId };
+        
+        setState({ org: org as Organization, user: user as User, token: token || null, isAuthenticated: true });
+
         if (token) {
           api.auth.me().then((res) => {
             if (res.user && res.organization) {
@@ -69,12 +69,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback((orgId: string, userId: string, token?: string) => {
-    const org = ORGANIZATIONS[orgId];
-    const user = USERS[userId];
-    if (!org || !user) return;
+    const org = ORGANIZATIONS[orgId] || { id: orgId, name: orgId.replace('org-', '').toUpperCase(), reputationScore: 50 };
+    const user = USERS[userId] || { id: userId, organizationId: orgId, username: userId };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ orgId, userId, token }));
-    setState({ org, user, token: token || null, isAuthenticated: true });
+    setState({ org: org as Organization, user: user as User, token: token || null, isAuthenticated: true });
   }, []);
 
   const logout = useCallback(() => {
@@ -83,8 +82,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const switchOrg = useCallback(async (orgId: string, userId: string) => {
-    const org = ORGANIZATIONS[orgId];
-    const user = USERS[userId];
+    const org = ORGANIZATIONS[orgId] || { id: orgId, name: orgId.replace('org-', '').toUpperCase(), reputationScore: 50 };
+    const user = USERS[userId] || { id: userId, organizationId: orgId, username: userId };
     const password = DEFAULT_PASSWORDS[userId];
     const username = user?.username;
 
