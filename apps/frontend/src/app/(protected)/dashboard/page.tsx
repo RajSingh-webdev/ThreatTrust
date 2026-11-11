@@ -310,62 +310,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Right Column: Quick Operations & Network Status */}
+        {/* Right Column: Network Status */}
         <div className="space-y-6">
-          {/* Quick Operations */}
-          <div className="bg-white border border-slate-200 rounded-lg p-5 space-y-2.5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-              Quick Operations
-            </h3>
-            <Link
-              href="/submit"
-              className="flex items-center justify-between p-3 rounded-md border border-slate-200 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-300 transition-colors group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded bg-blue-50 flex items-center justify-center text-blue-600">
-                  <Send className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-900 group-hover:text-blue-700">Submit New IoC</p>
-                  <p className="text-[11px] text-slate-500">Share indicator with network</p>
-                </div>
-              </div>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
-            </Link>
-
-            <Link
-              href="/endorse"
-              className="flex items-center justify-between p-3 rounded-md border border-slate-200 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-300 transition-colors group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded bg-amber-50 flex items-center justify-center text-amber-600">
-                  <CheckSquare className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-900 group-hover:text-amber-700">Review Pending ({pendingForMe.length})</p>
-                  <p className="text-[11px] text-slate-500">Endorse peer threats</p>
-                </div>
-              </div>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
-            </Link>
-
-            <Link
-              href="/threats"
-              className="flex items-center justify-between p-3 rounded-md border border-slate-200 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-300 transition-colors group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded bg-emerald-50 flex items-center justify-center text-emerald-600">
-                  <Radio className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-900 group-hover:text-emerald-700">Threat Feed</p>
-                  <p className="text-[11px] text-slate-500">Browse all {liveIocs ? liveIocs.length : IOCS_LIST.length} indicators</p>
-                </div>
-              </div>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
-            </Link>
-          </div>
-
           {/* Network Consortium Nodes */}
           <div className="bg-white border border-slate-200 rounded-lg p-5">
             <div className="flex items-center justify-between mb-3">
