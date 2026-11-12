@@ -1,19 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import {
-  Send, AlertCircle, CheckCircle2, Info, ArrowRight,
-  ShieldAlert, RefreshCw, Copy, Check, Lock
+  Send, AlertCircle, CheckCircle2, ArrowRight,
+  ShieldAlert, Copy, Check, Lock, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
-import { IOCS_LIST } from '@/lib/mock-data';
-import { normalizeIoc, IOC_TYPE_LABELS, tlpColor } from '@/lib/utils';
+import { normalizeIoc, IOC_TYPE_LABELS } from '@/lib/utils';
 import type { IocType, TlpLevel } from '@/lib/types';
-import StatusBadge from '@/components/status-badge';
 import { api } from '@/lib/api';
 
 export default function SubmitIocPage() {
+  const router = useRouter();
   const { org, user } = useAuth();
 
   const [iocType, setIocType] = useState<IocType>('ip');
@@ -33,47 +34,15 @@ export default function SubmitIocPage() {
   } | null>(null);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [liveIocs, setLiveIocs] = useState<any[] | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    api.iocs.getAll().then((res) => {
-      if (isMounted && res.iocs) setLiveIocs(res.iocs);
-    }).catch(() => {});
-    return () => { isMounted = false; };
-  }, []);
 
   if (!org || !user) return null;
 
-  // Reputation restriction check (< 30)
   const isRestricted = org.reputationScore < 30;
-
-  // Real-time live normalization
-  const normalizedValue = rawValue.trim() ? normalizeIoc(iocType, rawValue) : '';
-
-  // Real-time Duplicate Detection check against live DB / mock fallback
-  const allIocs = liveIocs || IOCS_LIST;
-  const duplicateMatch = normalizedValue
-    ? allIocs.find((i: any) => i.iocType === iocType && i.normalizedValue.toLowerCase() === normalizedValue.toLowerCase())
-    : null;
-
-  const placeholders: Record<IocType, string> = {
-    ip: 'e.g., 185.220.101.45 or 192.168.001.001',
-    url: 'e.g., HTTP://PHISHING-BANK.NET/login?utm_source=email&session=123',
-    domain: 'e.g., C2-SERVER.RU. or www.malicious-domain.com.',
-    file_hash: 'e.g., a3c4e5f6b7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4',
-  };
-
-  const helperHints: Record<IocType, string> = {
-    ip: 'Normalized: removes leading zeros per octet, standardizes IPv4/IPv6 notation.',
-    url: 'Normalized: lowercases scheme and host, preserves meaningful query params while stripping tracking telemetry (utm_*, fbclid).',
-    domain: 'Normalized: lowercases domain name, strips trailing root dots.',
-    file_hash: 'Normalized: converts hex strings to standard lowercase format.',
-  };
+  const normalizedPreview = rawValue.trim() ? normalizeIoc(iocType, rawValue.trim()) : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rawValue.trim() || !description.trim() || isRestricted) return;
+    if (!rawValue.trim()) return;
 
     setIsSubmitting(true);
     setSubmitError(null);
@@ -90,7 +59,7 @@ export default function SubmitIocPage() {
       const iocData = res.ioc;
       setSubmittedIoc({
         id: iocData.id,
-        normalizedValue: iocData.normalizedValue || normalizedValue,
+        normalizedValue: iocData.normalizedValue || normalizedPreview,
         iocType: iocData.iocType || iocType,
         tlpLevel: iocData.tlpLevel || tlpLevel,
         description: iocData.description || description,
@@ -98,7 +67,7 @@ export default function SubmitIocPage() {
         integrityHash: iocData.integrityHash || '',
       });
     } catch (err: any) {
-      setSubmitError(err.message || 'Failed to submit indicator to ledger.');
+      setSubmitError(err.message || 'Failed to submit indicator to consortium ledger.');
     } finally {
       setIsSubmitting(false);
     }
@@ -113,279 +82,252 @@ export default function SubmitIocPage() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      {/* Page Header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Submit Cyber Threat Indicator</h1>
-          <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 font-semibold px-2 py-0.5 rounded">
-            Stage 1: Proposal
+    <div className="min-h-screen bg-[#070708] text-white p-6 max-w-5xl mx-auto space-y-8 antialiased selection:bg-[#C6F432] selection:text-[#070708]">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1C1C22] pb-6">
+        <div>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#C6F432] bg-[#C6F432]/10 px-3 py-1 rounded-full border border-[#C6F432]/25">
+            PROPOSE THREAT INDICATOR
           </span>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mt-2.5">
+            Submit Indicator to Consortium
+          </h1>
+          <p className="text-xs text-[#8E8E9A] mt-1 font-normal">
+            Broadcast a normalized indicator to peer nodes for multi-party corroboration and consensus voting.
+          </p>
         </div>
-        <p className="text-slate-500 text-xs mt-1">
-          Publish a sanitized IoC to the ThreatTrust decentralized ledger for peer review and consensus verification
-        </p>
+
+        <div className="flex items-center gap-2 text-xs font-mono text-[#8E8E9A]">
+          <span>Submitter: <strong className="text-white">{org.name}</strong></span>
+          <span className="text-[#3A3A45]">/</span>
+          <span className="text-[#C6F432] font-bold">{org.reputationScore} REP</span>
+        </div>
       </div>
 
-      {/* Reputation Restriction Warning if score < 30 */}
+      {/* Restriction Notice */}
       {isRestricted && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 text-red-800 text-xs">
-          <ShieldAlert className="w-5 h-5 flex-shrink-0 text-red-600 mt-0.5" />
-          <div>
-            <h3 className="font-semibold text-red-900">Submission Privileges Restricted</h3>
-            <p className="mt-1 text-red-800">
-              Your organization reputation score is <strong>{org.reputationScore}</strong> (below the minimum threshold of 30).
-              Submission of new indicators is temporarily suspended to preserve network trust integrity.
+        <div className="rounded-2xl bg-rose-950/20 border border-rose-800/40 p-5 flex items-start gap-3.5 text-xs">
+          <ShieldAlert className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h3 className="font-bold text-rose-300">Submission Privileges Temporarily Suspended</h3>
+            <p className="text-rose-200/80 leading-relaxed">
+              Your organization reputation score is <strong>{org.reputationScore}</strong> (below the threshold of 30).
+              Submissions are suspended to protect consortium threat feed purity.
             </p>
           </div>
         </div>
       )}
 
-      {/* Success State Screen after submission */}
-      {submittedIoc ? (
-        <div className="bg-white border border-emerald-500/80 rounded-lg p-6 space-y-5 shadow-xs">
-          <div className="flex items-center gap-3 text-emerald-700">
-            <div className="w-9 h-9 rounded-md bg-emerald-50 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5" />
+      {/* Success Confirmation Modal / Banner */}
+      {submittedIoc && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="rounded-2xl bg-[#0B0B0E] border border-[#C6F432]/40 p-7 space-y-5 shadow-2xl relative overflow-hidden"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-[#C6F432] flex items-center justify-center text-[#070708]">
+                <Check className="w-4 h-4 stroke-[3]" />
+              </div>
+              <h3 className="text-base font-bold text-white">Indicator Anchored to Consortium Pipeline</h3>
             </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Indicator Submitted Successfully</h2>
-              <p className="text-xs text-slate-500">Status set to Pending · Awaiting 2 independent peer endorsements</p>
+            <span className="text-xs font-mono font-bold text-[#C6F432] bg-[#C6F432]/10 px-3 py-1 rounded-full border border-[#C6F432]/25">
+              STATUS: PENDING REVIEW (0/2)
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+            <div className="p-4 rounded-xl bg-[#121216] border border-[#1C1C24] space-y-1">
+              <span className="text-[10px] text-[#71717A] uppercase">Normalized Canonical Value</span>
+              <p className="text-sm font-bold text-white">{submittedIoc.normalizedValue}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-[#121216] border border-[#1C1C24] space-y-1">
+              <span className="text-[10px] text-[#71717A] uppercase">Fabric Transaction ID</span>
+              <p className="text-xs text-[#C6F432] truncate">{submittedIoc.txId || 'Anchored'}</p>
             </div>
           </div>
 
-          {/* Submission Details Card */}
-          <div className="bg-slate-50 border border-slate-200 rounded-md p-4 space-y-3 text-xs font-mono">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-3 border-b border-slate-200">
-              <div>
-                <span className="text-[11px] text-slate-500 block font-sans">Type & TLP</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs uppercase px-2 py-0.5 rounded bg-slate-200 text-slate-800 font-semibold">
-                    {submittedIoc.iocType}
-                  </span>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase border ${tlpColor(submittedIoc.tlpLevel)}`}>
-                    TLP:{submittedIoc.tlpLevel}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <span className="text-[11px] text-slate-500 block font-sans">Consensus State</span>
-                <div className="flex items-center gap-2 mt-1 font-sans">
-                  <StatusBadge status="pending" size="sm" />
-                  <span className="text-xs text-amber-700 font-medium">0/2 Endorsements</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <span className="text-[11px] text-slate-500 block font-sans">Stored Normalized Value</span>
-              <p className="text-emerald-800 font-medium break-all mt-1 bg-white p-2 rounded border border-slate-200">
-                {submittedIoc.normalizedValue}
-              </p>
-            </div>
-
-            <div>
-              <span className="text-[11px] text-slate-500 block font-sans">Deterministic Integrity Hash (SHA-256)</span>
-              <p className="text-slate-800 text-xs break-all mt-1 bg-white p-2 rounded border border-slate-200">
-                {submittedIoc.integrityHash}
-              </p>
-            </div>
-
-            <div>
-              <span className="text-[11px] text-slate-500 block font-sans">Fabric Blockchain Status</span>
-              {submittedIoc.txId ? (
-                <div className="text-slate-800 text-xs break-all mt-1 bg-white p-2 rounded border border-slate-200">
-                  <span className="text-slate-400 block font-sans text-[10px] mb-0.5">On-Chain Tx ID:</span>
-                  {submittedIoc.txId}
-                </div>
-              ) : (
-                <p className="text-amber-800 text-xs mt-1 bg-amber-50 p-2 rounded border border-amber-200 font-sans flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                  Fabric Network Offline (Stored locally in application database)
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <div className="flex items-center gap-3 pt-2">
             <button
               onClick={handleReset}
-              className="px-3.5 py-2 rounded-md border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
+              className="px-5 py-2.5 rounded-full bg-[#181820] hover:bg-[#202028] text-white text-xs font-medium transition-colors"
             >
               Submit Another Indicator
             </button>
             <Link
-              href="/threats"
-              className="px-3.5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1.5 transition-colors shadow-xs"
+              href="/endorse"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#C6F432] text-[#070708] text-xs font-bold transition-transform hover:scale-[1.02]"
             >
-              Go to Threat Feed <ArrowRight className="w-3.5 h-3.5" />
+              Go to Endorse Queue <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-        </div>
-      ) : (
-        /* Submission Form */
-        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-lg p-6 space-y-5 shadow-xs">
-          {/* Step 1: IoC Type Selection */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-              1. Select Indicator Type
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {(['ip', 'url', 'domain', 'file_hash'] as IocType[]).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setIocType(t)}
-                  className={`p-3 rounded-md border text-left font-medium transition-colors ${
-                    iocType === t
-                      ? 'bg-blue-50/70 border-blue-600 text-blue-900 ring-1 ring-blue-600'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="block text-xs font-semibold capitalize">{IOC_TYPE_LABELS[t]}</span>
-                  <span className="text-[10px] text-slate-400 mt-0.5 block uppercase">Type: {t}</span>
-                </button>
-              ))}
+        </motion.div>
+      )}
+
+      {/* Main Form */}
+      {!submittedIoc && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="rounded-3xl bg-[#0B0B0E] border border-[#1C1C22] p-8 space-y-7 shadow-xl">
+            
+            {/* 1. Indicator Type Selector */}
+            <div className="space-y-3">
+              <label className="text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-bold">
+                1. Select Indicator Type
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { type: 'ip' as IocType, label: 'IP Address', desc: 'IPv4 / IPv6' },
+                  { type: 'url' as IocType, label: 'URL', desc: 'Phishing / C2' },
+                  { type: 'domain' as IocType, label: 'Domain', desc: 'FQDN / Host' },
+                  { type: 'file_hash' as IocType, label: 'File Hash', desc: 'SHA-256 / MD5' },
+                ].map(({ type, label, desc }) => {
+                  const isSelected = iocType === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setIocType(type)}
+                      className={`p-4 rounded-2xl border text-left transition-all duration-200 ${
+                        isSelected
+                          ? 'bg-[#15151C] border-[#C6F432] shadow-md shadow-[#C6F432]/10 ring-1 ring-[#C6F432]/30'
+                          : 'bg-[#101014] border-[#1C1C22] hover:border-[#2C2C36] opacity-80 hover:opacity-100'
+                      }`}
+                    >
+                      <p className={`text-xs font-bold ${isSelected ? 'text-[#C6F432]' : 'text-white'}`}>{label}</p>
+                      <p className="text-[10px] text-[#71717A] mt-1 font-mono">{desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5">{helperHints[iocType]}</p>
-          </div>
 
-          {/* Step 2: Raw Indicator Input */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              2. Indicator Raw Value <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              disabled={isRestricted}
-              value={rawValue}
-              onChange={(e) => setRawValue(e.target.value)}
-              placeholder={placeholders[iocType]}
-              className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-xs text-slate-900 font-mono placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            {/* 2. Raw Value Input */}
+            <div className="space-y-2">
+              <label className="text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-bold">
+                2. Indicator Raw Value *
+              </label>
+              <input
+                type="text"
+                required
+                disabled={isRestricted}
+                value={rawValue}
+                onChange={(e) => setRawValue(e.target.value)}
+                placeholder={
+                  iocType === 'ip' ? '185.220.101.45' :
+                  iocType === 'domain' ? 'c2-malware-server.com' :
+                  iocType === 'url' ? 'https://phishing-login.com/secure' :
+                  'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+                }
+                className="w-full px-4 py-3.5 rounded-xl bg-[#101014] border border-[#1E1E26] text-white font-mono text-sm placeholder-[#454550] focus:border-[#C6F432] focus:outline-none focus:ring-1 focus:ring-[#C6F432]/30 transition-colors"
+              />
 
-            {/* Live Normalization Preview Box */}
-            {rawValue.trim() && (
-              <div className="mt-2.5 bg-slate-50 border border-slate-200 rounded-md p-3 space-y-1.5">
-                <div className="flex items-center justify-between text-xs text-slate-600">
-                  <span className="flex items-center gap-1.5 font-semibold text-blue-700">
-                    <RefreshCw className="w-3.5 h-3.5" /> Deterministic Canonical Value
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono">Deduplication Key: (type + value)</span>
+              {normalizedPreview && (
+                <div className="flex items-center gap-2 pt-1 text-[11px] font-mono text-[#8E8E9A]">
+                  <span className="text-[#71717A]">Canonical Preview:</span>
+                  <span className="text-[#C6F432] font-semibold">{normalizedPreview}</span>
                 </div>
-                <p className="font-mono text-xs text-emerald-800 font-medium break-all bg-white px-2.5 py-1.5 rounded border border-slate-200">
-                  {normalizedValue}
-                </p>
+              )}
+            </div>
 
-                {/* Duplicate Detection Alert */}
-                {duplicateMatch && (
-                  <div className="bg-amber-50 border border-amber-300 rounded p-2.5 text-xs text-amber-800 flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 text-amber-600 mt-0.5" />
-                    <div>
-                      <span className="font-semibold text-amber-900 block">Existing Indicator Detected in Ledger</span>
-                      This indicator is already registered (<span className="font-mono">{duplicateMatch.id}</span>) with status <strong>{duplicateMatch.status}</strong>.
-                      Submitting will register an observation/endorsement rather than a duplicate entry.
-                    </div>
-                  </div>
-                )}
+            {/* 3. TLP Level Selector */}
+            <div className="space-y-3">
+              <label className="text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-bold">
+                3. Traffic Light Protocol (TLP) Sharing Level
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { level: 'white' as TlpLevel, label: 'TLP:WHITE', sub: 'Public' },
+                  { level: 'green' as TlpLevel, label: 'TLP:GREEN', sub: 'Community' },
+                  { level: 'amber' as TlpLevel, label: 'TLP:AMBER', sub: 'Consortium Only' },
+                  { level: 'red' as TlpLevel, label: 'TLP:RED', sub: 'Confidential' },
+                ].map(({ level, label, sub }) => {
+                  const isSelected = tlpLevel === level;
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => setTlpLevel(level)}
+                      className={`p-3.5 rounded-xl border text-center transition-all ${
+                        isSelected
+                          ? 'bg-[#16161D] border-[#C6F432] text-white font-bold'
+                          : 'bg-[#101014] border-[#1C1C22] text-[#8E8E9A] hover:border-[#2C2C36]'
+                      }`}
+                    >
+                      <p className={`text-xs font-mono font-bold ${isSelected ? 'text-[#C6F432]' : 'text-white'}`}>{label}</p>
+                      <p className="text-[10px] text-[#71717A] mt-0.5">{sub}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 4. Threat Context */}
+            <div className="space-y-2">
+              <label className="text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-bold">
+                4. Threat Context & Incident Telemetry *
+              </label>
+              <textarea
+                required
+                rows={3}
+                disabled={isRestricted}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Observed in Cobalt Strike beaconing or credential phishing campaign targeting banking API..."
+                className="w-full px-4 py-3 rounded-xl bg-[#101014] border border-[#1E1E26] text-white text-xs placeholder-[#454550] focus:border-[#C6F432] focus:outline-none focus:ring-1 focus:ring-[#C6F432]/30 transition-colors"
+              />
+            </div>
+
+            {/* 5. Evidence Reference */}
+            <div className="space-y-2">
+              <label className="text-xs font-mono uppercase tracking-wider text-[#A1A1AA] font-bold">
+                5. Evidence Reference / Sandbox Link (Optional)
+              </label>
+              <input
+                type="text"
+                disabled={isRestricted}
+                value={evidenceReference}
+                onChange={(e) => setEvidenceReference(e.target.value)}
+                placeholder="https://virustotal.com/gui/file/... or internal incident ticket #9401"
+                className="w-full px-4 py-3 rounded-xl bg-[#101014] border border-[#1E1E26] text-white font-mono text-xs placeholder-[#454550] focus:border-[#C6F432] focus:outline-none focus:ring-1 focus:ring-[#C6F432]/30 transition-colors"
+              />
+            </div>
+
+            {/* Error Message */}
+            {submitError && (
+              <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-800/40 text-rose-300 text-xs font-mono flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                <span>{submitError}</span>
               </div>
             )}
-          </div>
 
-          {/* Step 3: TLP Level */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              3. Traffic Light Protocol (TLP) Sharing Level
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {(['white', 'green', 'amber', 'red'] as TlpLevel[]).map((level) => (
-                <button
-                  key={level}
-                  type="button"
-                  onClick={() => setTlpLevel(level)}
-                  className={`p-2.5 rounded-md border text-center transition-colors ${
-                    tlpLevel === level
-                      ? `ring-2 ${tlpColor(level)} border-current font-bold`
-                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="text-xs uppercase font-bold block">TLP:{level}</span>
-                  <span className="text-[10px] text-slate-400 mt-0.5 block">
-                    {level === 'white' && 'Public Disclosure'}
-                    {level === 'green' && 'Community'}
-                    {level === 'amber' && 'Consortium Only'}
-                    {level === 'red' && 'Strictly Confidential'}
-                  </span>
-                </button>
-              ))}
+            {/* Submit Action */}
+            <div className="pt-4 flex items-center justify-between border-t border-[#1C1C24]">
+              <span className="text-xs font-mono text-[#71717A]">
+                Submitting as: <strong className="text-white">{org.name}</strong>
+              </span>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                disabled={isSubmitting || isRestricted}
+                className={`flex items-center gap-2 px-7 py-3.5 rounded-full text-xs font-bold font-mono transition-all ${
+                  isSubmitting || isRestricted
+                    ? 'bg-[#181820] text-[#71717A] cursor-not-allowed'
+                    : 'bg-[#C6F432] hover:bg-[#b2e026] text-[#070708] shadow-xl shadow-[#C6F432]/15'
+                }`}
+              >
+                <Send className="w-3.5 h-3.5 fill-current" />
+                {isSubmitting ? 'Anchoring to Ledger...' : 'Submit to Consortium Ledger'}
+              </motion.button>
             </div>
-          </div>
 
-          {/* Step 4: Description */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              4. Threat Context & Description <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              required
-              rows={3}
-              disabled={isRestricted}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide observed malware family, adversary tactics, affected ports/protocols, campaign context..."
-              className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          {/* Step 5: Evidence Reference */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              5. Evidence Reference / Sandbox Link <span className="text-slate-400 font-normal">(Optional)</span>
-            </label>
-            <input
-              type="text"
-              disabled={isRestricted}
-              value={evidenceReference}
-              onChange={(e) => setEvidenceReference(e.target.value)}
-              placeholder="e.g., https://virustotal.com/gui/file/... or internal ticket ref"
-              className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          {submitError && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2.5 text-red-800 text-xs">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600 mt-0.5" />
-              <div>
-                <span className="font-semibold text-red-900 block">Submission Rejected</span>
-                {submitError}
-              </div>
-            </div>
-          )}
-
-          {/* Submit Action Button */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-xs text-slate-500">
-              Submitting as <span className="text-slate-800 font-medium">{org.name}</span> · Current Rep: <span className="text-blue-700 font-bold">{org.reputationScore}</span>
-            </div>
-            <button
-              type="submit"
-              disabled={isRestricted || isSubmitting || !rawValue.trim() || !description.trim()}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold px-5 py-2.5 rounded-md shadow-xs transition-colors flex items-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Processing Proposal...
-                </>
-              ) : (
-                <>
-                  <Send className="w-3.5 h-3.5" /> Submit to Ledger
-                </>
-              )}
-            </button>
           </div>
         </form>
       )}
+
     </div>
   );
 }

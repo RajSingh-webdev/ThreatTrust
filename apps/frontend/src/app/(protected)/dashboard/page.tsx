@@ -1,16 +1,17 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import {
-  TrendingUp, TrendingDown, Shield, Send, CheckSquare,
-  Radio, ArrowRight, Clock, AlertTriangle, CheckCircle2,
-  Building2, Users, Activity, RefreshCw
+  Send, CheckSquare, ArrowRight,
+  Shield, Activity, Lock, ExternalLink
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
-import { getOrgStats, ORGANIZATIONS, ORGS_LIST, IOCS_LIST, getEndorseCount } from '@/lib/mock-data';
-import { timeAgo, reputationColor, IOC_TYPE_LABELS, maskIocValue } from '@/lib/utils';
-import StatusBadge from '@/components/status-badge';
+import { getOrgStats, ORGS_LIST, getEndorseCount } from '@/lib/mock-data';
+import { timeAgo, maskIocValue } from '@/lib/utils';
 import { api } from '@/lib/api';
+import RotatingGlobe from '@/components/rotating-globe';
 
 const ORG_TYPE_LABELS: Record<string, string> = {
   bank: 'Commercial Bank',
@@ -23,7 +24,6 @@ export default function DashboardPage() {
   const [liveReputation, setLiveReputation] = useState<number | null>(null);
   const [liveIocs, setLiveIocs] = useState<any[] | null>(null);
   const [liveOrgs, setLiveOrgs] = useState<any[] | null>(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!org) return;
@@ -43,7 +43,7 @@ export default function DashboardPage() {
           if (orgsRes && orgsRes.organizations) setLiveOrgs(orgsRes.organizations);
         }
       } catch {
-        // Fallback to local store
+        // Fallback
       }
     }
 
@@ -57,13 +57,9 @@ export default function DashboardPage() {
   const stats = getOrgStats(org.id);
   const repDelta = currentRep - 50;
 
-  // Real submissions from this org if available
   const allSubmissions = liveIocs
     ? liveIocs.filter((i) => (i.contributorOrgId || i.contributorOrg?.id) === org.id || i.contributorOrg?.name === org.name)
     : stats.submitted;
-  const myPending = allSubmissions.filter((i) => i.status === 'pending');
-  const myVerified = allSubmissions.filter((i) => i.status === 'verified');
-  const myRejected = allSubmissions.filter((i) => i.status === 'rejected');
   const pendingForMe = liveIocs
     ? liveIocs.filter((i) => {
         if (i.status !== 'pending') return false;
@@ -76,299 +72,331 @@ export default function DashboardPage() {
         return !hasReviewed;
       })
     : stats.pendingEndorse;
-  const recentSubmissions = allSubmissions.slice(0, 5);
+
+  const recentSubmissions = allSubmissions.slice(0, 8);
+  const networkPeers = liveOrgs || ORGS_LIST;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Top Banner / Welcome */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 rounded-lg p-5">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-              Threat Intelligence Node
-            </span>
-            <span className="text-slate-300">·</span>
-            <span className="text-xs text-slate-500 font-mono">MSP: {org.fabricMspId}</span>
-          </div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {org.name} Operations Center
-          </h1>
-          <p className="text-slate-500 text-xs mt-1">
-            Logged in as <span className="text-slate-800 font-medium">{user.username}</span> ({user.role}) · Node status: <span className="text-emerald-700 font-semibold">Synchronized</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/submit"
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3.5 py-2 rounded-md transition-colors shadow-xs"
-          >
-            <Send className="w-3.5 h-3.5" />
-            Submit IoC
-          </Link>
-          <Link
-            href="/endorse"
-            className="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium px-3.5 py-2 rounded-md border border-slate-300 transition-colors"
-          >
-            <CheckSquare className="w-3.5 h-3.5 text-amber-600" />
-            Review ({pendingForMe.length})
-          </Link>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#070708] text-white">
+      {/* ─── 1. ETHENA HERO STAGE ─── */}
+      <section className="relative px-6 md:px-12 pt-0 pb-12 max-w-[1500px] mx-auto">
+        {/* Luminous Glow behind the Globe */}
+        <div className="absolute top-1/4 right-4 w-[650px] h-[650px] bg-[#C6F432]/5 blur-[150px] pointer-events-none rounded-full" />
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Reputation */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reputation Score</span>
-            <div className="w-7 h-7 rounded bg-blue-50 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-blue-600" />
-            </div>
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className={`text-2xl font-bold ${reputationColor(currentRep)}`}>
-              {currentRep}
-            </span>
-            <span className="text-xs text-slate-400">/ 100</span>
-          </div>
-          <div className="mt-1.5 flex items-center gap-1.5 text-xs">
-            {repDelta > 0 ? (
-              <span className="text-emerald-700 flex items-center font-medium">
-                <TrendingUp className="w-3.5 h-3.5 mr-0.5" /> +{repDelta}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10 pt-2">
+          {/* Left Hero Content */}
+          <div className="lg:col-span-6 space-y-6 pt-0">
+            <div className="space-y-4">
+              <span className="font-mono text-xs uppercase tracking-widest text-[#C6F432] font-bold">
+                CONSORTIUM OPERATIONAL CORE
               </span>
-            ) : repDelta < 0 ? (
-              <span className="text-red-700 flex items-center font-medium">
-                <TrendingDown className="w-3.5 h-3.5 mr-0.5" /> {repDelta}
-              </span>
-            ) : (
-              <span className="text-slate-500 font-medium">±0</span>
-            )}
-            <span className="text-slate-400">from initial 50</span>
-          </div>
-        </div>
-
-        {/* Card 2: Total Submissions */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Submissions</span>
-            <div className="w-7 h-7 rounded bg-slate-100 flex items-center justify-center">
-              <Send className="w-4 h-4 text-slate-600" />
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.08]">
+                Digital Immunity for the Banking Economy
+              </h1>
+              <p className="text-[#8E8E9A] text-base md:text-lg leading-relaxed max-w-xl font-normal">
+                Multi-party threat verification for enterprise banking SOCs. Propose indicators from <strong className="text-white">{org.name}</strong>, achieve 2/2 Byzantine consensus, and verify state integrity with zero trust assumptions.
+              </p>
             </div>
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold text-slate-900">
-              {allSubmissions.length}
-            </span>
-            <span className="text-xs text-slate-400">indicators</span>
-          </div>
-          <p className="mt-1.5 text-xs text-slate-500">
-            {myPending.length} pending · {myRejected.length} rejected
-          </p>
-        </div>
 
-        {/* Card 3: Verified Threats */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Verified Threats</span>
-            <div className="w-7 h-7 rounded bg-emerald-50 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            </div>
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold text-emerald-700">
-              {myVerified.length}
-            </span>
-            <span className="text-xs text-slate-400">peer-validated</span>
-          </div>
-          <p className="mt-1.5 text-xs text-emerald-700 font-medium">
-            +{myVerified.length} rep awarded (+1 each)
-          </p>
-        </div>
-
-        {/* Card 4: Pending Endorsements Required */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Awaiting Your Review</span>
-            <div className="w-7 h-7 rounded bg-amber-50 flex items-center justify-center">
-              <CheckSquare className="w-4 h-4 text-amber-600" />
-            </div>
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold text-amber-700">
-              {pendingForMe.length}
-            </span>
-            <span className="text-xs text-slate-400">peer IoCs</span>
-          </div>
-          <p className="mt-1.5 text-xs text-slate-500">
-            Independent review required (2/2)
-          </p>
-        </div>
-      </div>
-
-      {/* Main Content Grid: Left (Recent Submissions) & Right (Quick Actions + Network Status) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Recent Submissions Table */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-              <div>
-                <h2 className="text-sm font-semibold text-slate-900">Recent Organization Submissions</h2>
-                <p className="text-xs text-slate-500">Indicators submitted by {org.name}</p>
-              </div>
+            {/* Direct Action Buttons */}
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link
-                href="/threats"
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                href="/submit"
+                className="inline-flex items-center gap-2 bg-[#C6F432] hover:bg-[#b2e026] text-[#070708] text-xs font-bold font-mono px-7 py-4 rounded-full transition-all shadow-xl shadow-[#C6F432]/15"
               >
-                View threat feed <ArrowRight className="w-3.5 h-3.5" />
+                <Send className="w-3.5 h-3.5 fill-current" />
+                Submit New Indicator
+              </Link>
+
+              <Link
+                href="/endorse"
+                className="inline-flex items-center gap-2 bg-[#121216] hover:bg-[#1C1C24] text-white text-xs font-bold font-mono px-7 py-4 rounded-full border border-[#22222C] hover:border-[#383846] transition-colors"
+              >
+                <CheckSquare className="w-3.5 h-3.5 text-[#C6F432]" />
+                Review Peer Queue ({pendingForMe.length})
               </Link>
             </div>
-
-            {recentSubmissions.length === 0 ? (
-              <div className="text-center py-8 text-slate-400 text-xs">
-                No submissions yet from {org.name}.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                    <tr>
-                      <th className="px-4 py-2.5">Status</th>
-                      <th className="px-4 py-2.5">Type</th>
-                      <th className="px-4 py-2.5">Indicator Value</th>
-                      <th className="px-4 py-2.5 text-center">Consensus</th>
-                      <th className="px-4 py-2.5 text-right">Age</th>
-                      <th className="px-4 py-2.5 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {recentSubmissions.map((ioc) => {
-                      const endorseCount = (ioc.endorsements || []).filter((e: any) => e.decision === 'endorse').length || getEndorseCount(ioc.id);
-                      return (
-                        <tr
-                          key={ioc.id}
-                          className="hover:bg-slate-50/80 transition-colors"
-                        >
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <StatusBadge status={ioc.status} size="sm" />
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className="font-semibold uppercase text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                              {ioc.iocType}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 font-mono text-slate-800 whitespace-nowrap">
-                            {maskIocValue(ioc.normalizedValue, ioc.iocType)}
-                          </td>
-                          <td className="px-4 py-3 text-center whitespace-nowrap">
-                            <span className={`font-medium ${endorseCount >= 2 ? 'text-emerald-700' : 'text-slate-500'}`}>
-                              {endorseCount}/2
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right text-slate-500 whitespace-nowrap">
-                            {timeAgo(ioc.createdAt)}
-                          </td>
-                          <td className="px-4 py-3 text-right whitespace-nowrap">
-                            <Link
-                              href={`/threats/${ioc.id}`}
-                              className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
-                            >
-                              Details <ArrowRight className="w-3 h-3" />
-                            </Link>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
           </div>
 
-          {/* Protocol Lifecycle Guide */}
-          <div className="bg-white border border-slate-200 rounded-lg p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-              ThreatTrust Protocol Lifecycle
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-              <div className="bg-slate-50 border border-slate-200 p-3 rounded-md">
-                <span className="font-semibold text-blue-700 block mb-1">1. Submit & Normalize</span>
-                <span className="text-slate-600">Submitter normalizes IoC and checks for on-chain deduplication.</span>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 p-3 rounded-md">
-                <span className="font-semibold text-amber-700 block mb-1">2. Peer Review</span>
-                <span className="text-slate-600">2 independent external organizations review evidence & endorse.</span>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 p-3 rounded-md">
-                <span className="font-semibold text-emerald-700 block mb-1">3. Auto-Verification</span>
-                <span className="text-slate-600">At 2/2 threshold, threat becomes Verified across all nodes.</span>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 p-3 rounded-md">
-                <span className="font-semibold text-purple-700 block mb-1">4. Reputation Update</span>
-                <span className="text-slate-600">Submitter receives +1 rep (or -3 if confirmed false report).</span>
-              </div>
-            </div>
+          {/* Right 3D Rotating Sphere (Expanded to 6 columns) */}
+          <div className="lg:col-span-6 flex justify-center items-center relative overflow-visible">
+            <RotatingGlobe />
           </div>
         </div>
+      </section>
 
-        {/* Right Column: Network Status */}
-        <div className="space-y-6">
-          {/* Network Consortium Nodes */}
-          <div className="bg-white border border-slate-200 rounded-lg p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Network Consortium Nodes
-              </h3>
-              <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-medium">
-                Fabric: cti-channel
+      {/* ─── 2. ETHENA HORIZONTAL METRICS TICKER ROW ─── */}
+      <section className="border-y border-[#141418] bg-[#0A0A0D]">
+        <div className="max-w-7xl mx-auto px-6 md:px-16 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="space-y-1">
+            <div className="text-3xl md:text-5xl font-mono font-extrabold text-[#C6F432] tracking-tight">
+              {currentRep} <span className="text-xs text-[#52525B] font-normal">/ 100</span>
+            </div>
+            <p className="text-xs uppercase tracking-wider font-mono text-[#71717A] font-bold">Node Trust Score</p>
+            <span className="text-[11px] font-mono text-[#52525B]">
+              {repDelta >= 0 ? `+${repDelta}` : repDelta} delta from baseline
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-3xl md:text-5xl font-mono font-extrabold text-white tracking-tight">
+              {allSubmissions.length}
+            </div>
+            <p className="text-xs uppercase tracking-wider font-mono text-[#71717A] font-bold">Indicators Proposed</p>
+            <span className="text-[11px] font-mono text-[#52525B]">
+              {allSubmissions.filter((i) => i.status === 'pending').length} pending review
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-3xl md:text-5xl font-mono font-extrabold text-white tracking-tight">
+              {allSubmissions.filter((i) => i.status === 'verified').length}
+            </div>
+            <p className="text-xs uppercase tracking-wider font-mono text-[#71717A] font-bold">Consensus Verified</p>
+            <span className="text-[11px] font-mono text-[#C6F432]">
+              2/2 Byzantine quorum
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <div className="text-3xl md:text-5xl font-mono font-extrabold text-[#C6F432] tracking-tight">
+              100%
+            </div>
+            <p className="text-xs uppercase tracking-wider font-mono text-[#71717A] font-bold">Liveness Quorum</p>
+            <span className="text-[11px] font-mono text-[#52525B]">
+              3/3 Fabric peers online
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 3. ONBOARDING & ARCHITECTURE (ETHENA THREE-COLUMN SECTION) ─── */}
+      <section className="px-6 md:px-16 py-20 max-w-7xl mx-auto space-y-12">
+        <div className="text-center space-y-3">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#C6F432] bg-[#C6F432]/10 px-3.5 py-1 rounded-full border border-[#C6F432]/25 font-bold">
+            PROTOCOL ARCHITECTURE
+          </span>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+            Institutional Threat Protocols
+          </h2>
+          <p className="text-xs font-mono text-[#8E8E9A] max-w-xl mx-auto">
+            Channel: cti-channel · Chaincode: threattrust_cc · Zero Trust Security Model
+          </p>
+        </div>
+
+        {/* 3 Large Ethena Columns with Wireframe Grids */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Column 1 */}
+          <div className="relative rounded-2xl bg-[#0B0B0E] border border-[#1C1C24] p-8 space-y-6 overflow-hidden">
+            <div 
+              className="absolute inset-0 opacity-[0.035] pointer-events-none"
+              style={{
+                backgroundImage: `linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)`,
+                backgroundSize: '24px 24px',
+              }}
+            />
+            <div className="relative z-10 space-y-4">
+              <span className="text-[10px] font-mono uppercase px-2.5 py-1 rounded-full bg-[#14141A] text-[#A1A1AA] border border-[#22222C] font-bold">
+                IMMUTABILITY
               </span>
+              <h3 className="text-xl font-mono font-bold text-white">SHA-256 State Anchoring</h3>
+              <p className="text-xs text-[#8E8E9A] leading-relaxed">
+                Deterministic state hash commitment computed over canonical indicator telemetry. Any tampering with relational database records is immediately detected by the on-chain root of trust.
+              </p>
+              <div className="pt-4 border-t border-[#1C1C24]">
+                <Link
+                  href="/audit"
+                  className="inline-flex items-center gap-2 text-xs font-mono text-[#C6F432] hover:underline"
+                >
+                  Verify Cryptographic Audit <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
+          </div>
 
-            <div className="space-y-2.5">
-              {(liveOrgs || ORGS_LIST).map((peer) => {
-                const isCurrent = peer.id === org.id || peer.name === org.name;
-                return (
-                  <div
-                    key={peer.id}
-                    className={`p-3 rounded-md border ${
-                      isCurrent
-                        ? 'bg-blue-50/40 border-blue-200'
-                        : 'bg-white border-slate-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Building2 className={`w-3.5 h-3.5 ${isCurrent ? 'text-blue-600' : 'text-slate-400'}`} />
-                        <span className="text-xs font-semibold text-slate-900">
-                          {peer.name} {isCurrent && <span className="text-[10px] text-blue-700 font-semibold bg-blue-50 px-1 py-0.2 rounded border border-blue-200">(You)</span>}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <span className={`text-xs font-bold ${reputationColor(peer.reputationScore)}`}>
-                          {peer.reputationScore}
-                        </span>
-                        <span className="text-[10px] text-slate-400 ml-1">rep</span>
-                      </div>
-                    </div>
-                    <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-500">
-                      <span>{ORG_TYPE_LABELS[peer.orgType]}</span>
-                      <span className="font-mono text-[10px] text-slate-400">{peer.fabricMspId}</span>
-                    </div>
-                    {/* Score Bar */}
-                    <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          peer.reputationScore >= 50 ? 'bg-emerald-600' : 'bg-amber-500'
-                        }`}
-                        style={{ width: `${Math.min(100, Math.max(0, peer.reputationScore))}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+          {/* Column 2 */}
+          <div className="relative rounded-2xl bg-[#0B0B0E] border border-[#1C1C24] p-8 space-y-6 overflow-hidden">
+            <div 
+              className="absolute inset-0 opacity-[0.035] pointer-events-none"
+              style={{
+                backgroundImage: `linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)`,
+                backgroundSize: '24px 24px',
+              }}
+            />
+            <div className="relative z-10 space-y-4">
+              <span className="text-[10px] font-mono uppercase px-2.5 py-1 rounded-full bg-[#14141A] text-[#A1A1AA] border border-[#22222C] font-bold">
+                ANTI-SYBIL LOCK
+              </span>
+              <h3 className="text-xl font-mono font-bold text-white">Multi-Peer Consensus</h3>
+              <p className="text-xs text-[#8E8E9A] leading-relaxed">
+                Organizations are cryptographically prevented from self-endorsing. Two distinct, non-submitting banking institutions must validate threat telemetry before it transitions to verified status.
+              </p>
+              <div className="pt-4 border-t border-[#1C1C24]">
+                <Link
+                  href="/endorse"
+                  className="inline-flex items-center gap-2 text-xs font-mono text-[#C6F432] hover:underline"
+                >
+                  Inspect Endorsement Queue <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 3 */}
+          <div className="relative rounded-2xl bg-[#0B0B0E] border border-[#1C1C24] p-8 space-y-6 overflow-hidden">
+            <div 
+              className="absolute inset-0 opacity-[0.035] pointer-events-none"
+              style={{
+                backgroundImage: `linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)`,
+                backgroundSize: '24px 24px',
+              }}
+            />
+            <div className="relative z-10 space-y-4">
+              <span className="text-[10px] font-mono uppercase px-2.5 py-1 rounded-full bg-[#14141A] text-[#A1A1AA] border border-[#22222C] font-bold">
+                DYNAMIC INVARIANT
+              </span>
+              <h3 className="text-xl font-mono font-bold text-white">Quality Invariant Scoring</h3>
+              <p className="text-xs text-[#8E8E9A] leading-relaxed">
+                Smart contract automated rewards: submitters receive +1 rep for verified threats and take a -3 penalty for false positives. Nodes below 30 reputation are automatically frozen.
+              </p>
+              <div className="pt-4 border-t border-[#1C1C24]">
+                <Link
+                  href="/reputation"
+                  className="inline-flex items-center gap-2 text-xs font-mono text-[#C6F432] hover:underline"
+                >
+                  View Reputation Standings <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* ─── 4. CONSORTIUM DATA LEDGER & PARTICIPANTS TABLE ─── */}
+      <section className="px-6 md:px-16 py-16 max-w-7xl mx-auto space-y-8 border-t border-[#141418]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold font-mono tracking-tight text-white">
+              Recent Consortium Submissions
+            </h2>
+            <p className="text-xs font-mono text-[#8E8E9A] mt-1">
+              Anchored to Hyperledger Fabric cti-channel with 2/2 consensus quorum.
+            </p>
+          </div>
+          <Link
+            href="/threats"
+            className="text-xs font-mono text-[#C6F432] hover:text-white flex items-center gap-1.5 transition-colors"
+          >
+            Explore All Indicators <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="rounded-2xl border border-[#1C1C24] overflow-hidden bg-[#0B0B0E]">
+          {recentSubmissions.length === 0 ? (
+            <div className="text-center py-16 text-[#52525B] font-mono text-xs">
+              No threat indicators submitted yet from {org.name}.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead className="bg-[#101014] text-[#71717A] uppercase tracking-wider text-[10px] border-b border-[#181820]">
+                  <tr>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Type</th>
+                    <th className="px-6 py-4">Indicator Value</th>
+                    <th className="px-6 py-4 text-center">Consensus Quorum</th>
+                    <th className="px-6 py-4 text-right">Age</th>
+                    <th className="px-6 py-4 text-right">Verification</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#15151B]">
+                  {recentSubmissions.map((ioc) => {
+                    const endorseCount =
+                      (ioc.endorsements || []).filter((e: any) => e.decision === 'endorse').length ||
+                      getEndorseCount(ioc.id);
+                    return (
+                      <tr key={ioc.id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#C6F432]/10 text-[#C6F432] border border-[#C6F432]/30 px-2.5 py-0.5 rounded-full">
+                            VERIFIED
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="font-bold uppercase text-[10px] px-2.5 py-0.5 rounded bg-[#14141A] text-[#A1A1AA] border border-[#22222C]">
+                            {ioc.iocType}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-white whitespace-nowrap font-medium">
+                          {maskIocValue(ioc.normalizedValue, ioc.iocType)}
+                        </td>
+                        <td className="px-6 py-4 text-center whitespace-nowrap text-[#C6F432] font-bold">
+                          {endorseCount}/2
+                        </td>
+                        <td className="px-6 py-4 text-right text-[#71717A] whitespace-nowrap">
+                          {timeAgo(ioc.createdAt)}
+                        </td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <Link
+                            href={`/threats/${ioc.id}`}
+                            className="text-[#C6F432] hover:text-white transition-colors"
+                          >
+                            Details →
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ─── 5. CONSORTIUM PARTICIPANTS ─── */}
+      <section className="px-6 md:px-16 py-12 max-w-7xl mx-auto space-y-6 border-t border-[#141418]">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
+            Consortium Participants
+          </h2>
+          <span className="text-xs font-mono text-[#C6F432]">
+            3 Active Peers in Consensus
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+          {networkPeers.map((peer) => {
+            const isCurrent = peer.id === org.id || peer.name === org.name;
+            return (
+              <div
+                key={peer.id}
+                className={`p-5 rounded-xl border transition-all ${
+                  isCurrent
+                    ? 'bg-[#101014] border-[#C6F432]/40 shadow-lg shadow-[#C6F432]/5'
+                    : 'bg-[#0B0B0E] border-[#1C1C24]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${isCurrent ? 'bg-[#C6F432]' : 'bg-[#3A3A45]'}`} />
+                    <span className="font-bold text-white text-sm">{peer.name}</span>
+                    {isCurrent && (
+                      <span className="text-[9px] bg-[#C6F432] text-black font-extrabold px-1.5 py-0.2 rounded-full">
+                        YOU
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-bold text-[#C6F432] text-sm">{peer.reputationScore} REP</span>
+                </div>
+                <div className="mt-2 text-[10px] text-[#71717A] flex items-center justify-between">
+                  <span>{ORG_TYPE_LABELS[peer.orgType] ?? peer.orgType}</span>
+                  <span>{peer.fabricMspId}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

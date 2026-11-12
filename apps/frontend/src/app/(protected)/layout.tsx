@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Sidebar from '@/components/sidebar';
+import InstitutionalNavbar from '@/components/institutional-navbar';
 import { useAuth } from '@/lib/auth-context';
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
@@ -17,16 +17,16 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-slate-500 text-sm">Redirecting…</div>
+      <div className="min-h-screen bg-[#070708] flex items-center justify-center font-mono text-xs text-[#71717A]">
+        Authenticating node...
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
-      <Sidebar />
-      <main className="flex-1 ml-64 min-h-screen">
+    <div className="min-h-screen bg-[#070708] text-white selection:bg-[#C6F432] selection:text-[#070708]">
+      <InstitutionalNavbar />
+      <main className="pt-2 min-h-screen">
         {children}
       </main>
     </div>

@@ -1,26 +1,25 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import Link from 'next/link';
+import { motion } from 'framer-motion';
 import {
-  Shield, CheckCircle2, XCircle, AlertTriangle, Hash,
-  Activity, Filter, ExternalLink, RefreshCw, Layers, Lock
+  CheckCircle2, XCircle, AlertTriangle, Hash,
+  Activity, Filter
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
-import { getAllAuditLog, IOCS } from '@/lib/mock-data';
+import { getAllAuditLog } from '@/lib/mock-data';
 import { formatDate, shortTxId } from '@/lib/utils';
 import { api } from '@/lib/api';
-import type { AuditAction } from '@/lib/types';
 
-const ACTION_COLORS: Record<string, string> = {
-  submit_ioc: 'bg-blue-50 text-blue-700 border-blue-200',
-  endorse_ioc: 'bg-purple-50 text-purple-700 border-purple-200',
-  reject_ioc: 'bg-red-50 text-red-700 border-red-200',
-  verify_ioc: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  flag_ioc: 'bg-amber-50 text-amber-800 border-amber-200',
-  update_reputation: 'bg-yellow-50 text-yellow-800 border-yellow-200',
-  integrity_check: 'bg-slate-100 text-slate-700 border-slate-200',
-  register_org: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+const ACTION_BADGES: Record<string, string> = {
+  submit_ioc: 'bg-sky-950/40 text-sky-400 border-sky-800/40',
+  endorse_ioc: 'bg-[#C6F432]/10 text-[#C6F432] border-[#C6F432]/30',
+  reject_ioc: 'bg-rose-950/40 text-rose-400 border-rose-800/40',
+  verify_ioc: 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40',
+  flag_ioc: 'bg-amber-950/40 text-amber-400 border-amber-800/40',
+  update_reputation: 'bg-purple-950/40 text-purple-400 border-purple-800/40',
+  integrity_check: 'bg-[#181820] text-[#A1A1AA] border-[#272732]',
+  register_org: 'bg-indigo-950/40 text-indigo-400 border-indigo-800/40',
 };
 
 export default function AuditIntegrityPage() {
@@ -55,7 +54,7 @@ export default function AuditIntegrityPage() {
     return all.filter((a) => a.action === selectedActionFilter);
   }, [liveAuditLogs, selectedActionFilter]);
 
-  // Fallback demo indicators for integrity visualization if none loaded yet
+  // Demo indicators for cryptographic integrity visual verification
   const iocPass = {
     id: 'ioc-genesis',
     iocType: 'ip',
@@ -71,207 +70,183 @@ export default function AuditIntegrityPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#070708] text-white p-6 md:p-8 max-w-7xl mx-auto space-y-8 antialiased">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
-            Audit Trail & Ledger Integrity Verification
-          </h1>
-          <span className="bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-            Tamper-Evidence Monitor
-          </span>
-        </div>
-        <p className="text-slate-500 text-sm mt-1">
-          Cryptographic consistency verification between local relational storage and Hyperledger Fabric immutable state
+      <div className="space-y-1">
+        <h1 className="text-2xl md:text-3xl font-mono font-bold text-white tracking-tight">
+          Audit Trail & Cryptographic Verification
+        </h1>
+        <p className="text-xs font-mono text-[#8E8E9A]">
+          Continuous SHA-256 state commitment verification between operational storage and consortium ledger root anchors.
         </p>
       </div>
 
-      {/* SECTION 1: Live Cryptographic Integrity Verification Demonstration */}
+      {/* SECTION 1: Cryptographic Integrity Engine */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Hash className="w-5 h-5 text-blue-600" /> Cryptographic Integrity Verification Engine
-            </h2>
-            <p className="text-xs text-slate-500">
-              Comparing SHA-256 state commitments calculated over off-chain database records against on-chain ledger roots
-            </p>
-          </div>
-          <span className="text-[11px] text-slate-400 font-mono hidden sm:inline">
+          <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-[#A1A1AA] flex items-center gap-2">
+            <Hash className="w-4 h-4 text-[#C6F432]" /> Tamper-Evidence Verification Engine
+          </h2>
+          <span className="text-[10px] text-[#52525B] font-mono hidden sm:inline">
             Formula: SHA256(ioc_id|ioc_type|normalized_value|contributor_org_id|created_at_unix)
           </span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* DEMO 1: PASS Verification Card */}
-          <div className="bg-white border-2 border-emerald-500/70 rounded-lg p-6 space-y-4 shadow-sm">
+          {/* DEMO 1: PASS Card */}
+          <div className="p-6 rounded-2xl bg-[#0B0B0E] border border-[#C6F432]/30 shadow-xl space-y-4 relative overflow-hidden">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-xs uppercase font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded border border-slate-200">
+                <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 bg-[#14141A] text-[#A1A1AA] rounded border border-[#22222C]">
                   {iocPass.iocType}
                 </span>
-                <span className="font-mono text-sm font-semibold text-slate-900">{iocPass.normalizedValue}</span>
+                <span className="font-mono text-sm font-bold text-white">{iocPass.normalizedValue}</span>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-300">
-                <CheckCircle2 className="w-3.5 h-3.5" /> VERIFIED MATCH (PASS)
+              <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[#C6F432] bg-[#C6F432]/10 px-2.5 py-1 rounded-lg border border-[#C6F432]/30">
+                <CheckCircle2 className="w-3.5 h-3.5" /> VERIFIED
               </span>
             </div>
 
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-xs text-emerald-800 space-y-0.5">
-              <span className="font-bold block text-emerald-900">BLOCKCHAIN INTEGRITY CHECK PASSED</span>
-              <p className="text-emerald-700 leading-relaxed text-[11px]">
-                Off-chain record matches the on-chain SHA-256 state commitment exactly. Zero tampering detected.
+            <div className="p-3.5 rounded-xl bg-[#C6F432]/5 border border-[#C6F432]/20 text-xs font-mono text-[#D4D4D8] space-y-1">
+              <p className="font-bold text-[#C6F432]">Cryptographic State Consistent</p>
+              <p className="text-[#8E8E9A] text-[11px]">
+                Computed SHA-256 hash strictly matches the on-chain anchor commitment. Off-chain database is pristine.
               </p>
             </div>
 
-            <div className="space-y-3 text-xs font-mono">
+            <div className="space-y-2.5 font-mono text-xs">
               <div>
-                <span className="text-[11px] text-slate-500 font-sans block font-medium">On-Chain Ledger Anchor (Fabric)</span>
-                <p className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 break-all text-[11px] mt-0.5">
+                <span className="text-[10px] uppercase text-[#71717A] block font-bold">Ledger Root Hash</span>
+                <p className="p-2.5 rounded-xl bg-[#101014] border border-[#1C1C24] text-white break-all text-[11px] mt-1">
                   {iocPass.integrityHash}
                 </p>
               </div>
               <div>
-                <span className="text-[11px] text-slate-500 font-sans block font-medium">Current Calculated SHA-256 (PostgreSQL)</span>
-                <p className="p-2.5 rounded-lg bg-emerald-50/50 border border-emerald-300 text-emerald-800 break-all text-[11px] mt-0.5">
+                <span className="text-[10px] uppercase text-[#71717A] block font-bold">Computed Off-Chain Hash</span>
+                <p className="p-2.5 rounded-xl bg-[#101014] border border-[#1C1C24] text-[#C6F432] break-all text-[11px] mt-1 font-bold">
                   {iocPass.integrityHash}
                 </p>
               </div>
-              <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500 font-sans flex items-center justify-between">
-                <span>Formula: <code className="font-mono text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">SHA256(ioc_id|type|value|org|timestamp)</code></span>
-                <span className="text-emerald-700 font-medium">Valid Anchor</span>
+              <div className="pt-2 border-t border-[#1C1C24] text-[11px] text-[#71717A] flex items-center justify-between">
+                <span>Verification Verdict: <strong className="text-[#C6F432]">Pristine</strong></span>
+                <span className="text-[#C6F432]">Delta: 0 bits</span>
               </div>
             </div>
           </div>
 
-          {/* DEMO 2: FAIL Verification Card (Simulated Tampering) */}
-          <div className="bg-red-50/30 border-2 border-red-500 rounded-lg p-6 space-y-4 shadow-sm ring-1 ring-red-500/20">
+          {/* DEMO 2: FAIL Card */}
+          <div className="p-6 rounded-2xl bg-[#0B0B0E] border border-rose-500/50 shadow-xl space-y-4 relative overflow-hidden">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-xs uppercase font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded border border-slate-200">
+                <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 bg-[#14141A] text-[#A1A1AA] rounded border border-[#22222C]">
                   {iocFail.iocType}
                 </span>
-                <span className="font-mono text-sm font-semibold text-slate-900">{iocFail.normalizedValue}</span>
+                <span className="font-mono text-sm font-bold text-white">{iocFail.normalizedValue}</span>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-red-800 bg-red-100 px-2.5 py-1 rounded-md border border-red-300">
-                <XCircle className="w-3.5 h-3.5" /> MISMATCH DETECTED (FAIL)
+              <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-rose-400 bg-rose-950/30 px-2.5 py-1 rounded-lg border border-rose-800/50">
+                <XCircle className="w-3.5 h-3.5" /> TAMPERED
               </span>
             </div>
 
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-800 space-y-1">
-              <span className="font-bold text-red-900 flex items-center gap-1">
-                <AlertTriangle className="w-4 h-4 text-red-600" /> BLOCKCHAIN INTEGRITY CHECK FAILED
-              </span>
-              <p className="text-red-700 text-[11px] leading-relaxed">
-                The current database content differs from the immutable hash anchored on Hyperledger Fabric. The off-chain record was modified after genesis submission.
+            <div className="p-3.5 rounded-xl bg-rose-950/20 border border-rose-800/40 text-xs font-mono text-rose-300 space-y-1">
+              <p className="font-bold flex items-center gap-1.5 text-rose-400">
+                <AlertTriangle className="w-4 h-4" /> State Compromise Detected
+              </p>
+              <p className="text-rose-400/80 text-[11px]">
+                Computed hash mismatches immutable on-chain root. Record altered post-commitment.
               </p>
             </div>
 
-            <div className="space-y-3 text-xs font-mono">
+            <div className="space-y-2.5 font-mono text-xs">
               <div>
-                <span className="text-[11px] text-slate-500 font-sans block font-medium">On-Chain Ledger Anchor (Fabric)</span>
-                <p className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 break-all text-[11px] mt-0.5">
+                <span className="text-[10px] uppercase text-[#71717A] block font-bold">Ledger Root Hash (Anchor)</span>
+                <p className="p-2.5 rounded-xl bg-[#101014] border border-[#1C1C24] text-white break-all text-[11px] mt-1">
                   {iocFail.integrityHash}
                 </p>
               </div>
               <div>
-                <span className="text-[11px] text-red-700 font-sans block font-semibold">Current Calculated SHA-256 (Tampered DB State)</span>
-                <p className="p-2.5 rounded-lg bg-red-100/60 border border-red-300 text-red-900 break-all text-[11px] mt-0.5 font-bold">
+                <span className="text-[10px] uppercase text-[#71717A] block font-bold">Tampered Computed Hash</span>
+                <p className="p-2.5 rounded-xl bg-rose-950/20 border border-rose-800/50 text-rose-300 break-all text-[11px] mt-1 font-bold">
                   {iocFail.tamperedCurrentHash}
                 </p>
               </div>
-              <div className="pt-2 border-t border-red-200/60 text-[11px] text-slate-500 font-sans flex items-center justify-between">
-                <span>Tampered Value: <strong className="text-red-700">203.0.113.50</strong></span>
-                <span className="text-red-700 font-medium">State Compromised</span>
+              <div className="pt-2 border-t border-[#1C1C24] text-[11px] text-[#71717A] flex items-center justify-between">
+                <span>Tampered Value: <strong className="text-rose-400">{iocFail.normalizedValue}</strong></span>
+                <span className="text-rose-400">Root Mismatch</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* SECTION 2: Consortium Audit Trail Table */}
-      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm space-y-4">
+      {/* SECTION 2: Consortium Audit Trail */}
+      <div className="p-6 rounded-2xl bg-[#0B0B0E] border border-[#1C1C24] shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">Consortium Audit Trail</h2>
-            <p className="text-xs text-slate-500">Immutable log of all actor operations, reviews, and state transitions</p>
+            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-white flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[#C6F432]" /> Consortium Provenance Ledger
+            </h2>
+            <p className="text-xs font-mono text-[#8E8E9A]">Audit trail of actor transactions, reviews, and verified state transitions.</p>
           </div>
 
           {/* Action Filter */}
           <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <Filter className="w-3.5 h-3.5 text-[#71717A]" />
             <select
               value={selectedActionFilter}
               onChange={(e) => setSelectedActionFilter(e.target.value)}
-              className="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600"
+              className="bg-[#101014] border border-[#1E1E26] rounded-xl px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-[#C6F432] transition-colors"
             >
-              <option value="all">All Actions</option>
+              <option value="all">All Operations</option>
               <option value="submit_ioc">Submit IoC</option>
               <option value="endorse_ioc">Endorse IoC</option>
               <option value="verify_ioc">Verify IoC</option>
               <option value="reject_ioc">Reject IoC</option>
               <option value="update_reputation">Update Reputation</option>
               <option value="integrity_check">Integrity Check</option>
-              <option value="register_org">Register Org</option>
+              <option value="register_org">Register Participant</option>
             </select>
           </div>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto border border-slate-200 rounded-lg">
+        <div className="overflow-x-auto border border-[#1C1C24] rounded-xl">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
+              <tr className="border-b border-[#1C1C24] bg-[#0E0E12] text-[10px] font-mono uppercase tracking-wider text-[#71717A]">
                 <th className="py-3 px-4 pl-6">Timestamp</th>
                 <th className="py-3 px-4">Action</th>
-                <th className="py-3 px-4">Actor Node</th>
+                <th className="py-3 px-4">Participant</th>
                 <th className="py-3 px-4">Subject Object</th>
-                <th className="py-3 px-4">Result / Consensus Event</th>
-                <th className="py-3 px-4 pr-6 text-right">Fabric Tx Hash</th>
+                <th className="py-3 px-4">Result / Consensus</th>
+                <th className="py-3 px-4 pr-6 text-right">Blockchain Tx</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
-              {auditLog.map((entry, idx) => (
-                <tr key={entry.id} className={`hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}>
-                  {/* Timestamp */}
-                  <td className="py-3.5 px-4 pl-6 whitespace-nowrap text-slate-500">
+            <tbody className="divide-y divide-[#14141B] text-xs font-mono">
+              {auditLog.map((entry) => (
+                <tr key={entry.id} className="hover:bg-white/[0.02] transition-colors">
+                  <td className="py-3.5 px-4 pl-6 whitespace-nowrap text-[#71717A]">
                     {formatDate(entry.createdAt)}
                   </td>
-
-                  {/* Action */}
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <span
-                      className={`text-[11px] font-bold px-2 py-0.5 rounded border uppercase ${
-                        ACTION_COLORS[entry.action] ?? 'bg-slate-100 text-slate-700 border-slate-200'
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${
+                        ACTION_BADGES[entry.action] ?? 'bg-[#14141A] text-[#8E8E9A] border-[#22222C]'
                       }`}
                     >
                       {entry.action.replace('_', ' ')}
                     </span>
                   </td>
-
-                  {/* Actor */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-slate-900 font-semibold">{entry.actorOrg?.name || entry.actorOrgName || entry.actorOrgId}</span>
-                      {(entry.actorUser?.username || entry.actorUsername) && (
-                        <span className="text-slate-400 text-[11px]">({entry.actorUser?.username || entry.actorUsername})</span>
-                      )}
-                    </div>
+                  <td className="py-3.5 px-4 whitespace-nowrap text-white font-bold">
+                    {entry.actorOrg?.name || entry.actorOrgName || entry.actorOrgId}
                   </td>
-
-                  {/* Object */}
-                  <td className="py-3.5 px-4 font-mono text-slate-700 max-w-xs truncate">
+                  <td className="py-3.5 px-4 text-[#A1A1AA] max-w-xs truncate">
                     {entry.objectId || entry.objectValue || '—'}
                   </td>
-
-                  {/* Result */}
-                  <td className="py-3.5 px-4 text-slate-600 max-w-sm truncate">
+                  <td className="py-3.5 px-4 text-[#8E8E9A] max-w-sm truncate">
                     {entry.result || '—'}
                   </td>
-
-                  {/* TX ID */}
-                  <td className="py-3.5 px-4 pr-6 text-right whitespace-nowrap font-mono text-slate-400">
+                  <td className="py-3.5 px-4 pr-6 text-right whitespace-nowrap text-[#52525B]">
                     {entry.blockchainTxId ? shortTxId(entry.blockchainTxId) : '—'}
                   </td>
                 </tr>
